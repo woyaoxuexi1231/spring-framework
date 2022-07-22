@@ -42,7 +42,6 @@ public interface Advisor {
 	 */
 	Advice EMPTY_ADVICE = new Advice() {};
 
-
 	/**
 	 * Return the advice part of this aspect. An advice may be an
 	 * interceptor, a before advice, a throws advice, etc.
