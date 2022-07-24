@@ -19,6 +19,7 @@ package org.springframework.context.support;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -74,8 +75,11 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
 	public void setConfigLocations(@Nullable String... locations) {
+
 		if (locations != null) {
 			Assert.noNullElements(locations, "Config locations must not be null");
+
+			// 遍历每一个配置文件
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
 				this.configLocations[i] = resolvePath(locations[i]).trim();
@@ -122,6 +126,14 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
+		// StandardEnvironment
+		/**
+		 * @see AbstractEnvironment#AbstractEnvironment() 
+		 * @see AbstractEnvironment#resolveRequiredPlaceholders(String);
+		 * @see org.springframework.core.env.AbstractPropertyResolver#resolveRequiredPlaceholders(String) 
+		 */
+
+		// 解析处理一下给定的路径，如有必要，将占位符替换为相应的环境属性值。应用于配置位置。
 		return getEnvironment().resolveRequiredPlaceholders(path);
 	}
 

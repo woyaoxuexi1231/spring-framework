@@ -244,6 +244,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
 	public AbstractApplicationContext() {
+		// 用于将位置模式（例如，Ant 样式的路径模式）解析为Resource对象的策略接口。
+		// Resource用来描述表示底层资源？？？ todo
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -252,7 +254,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param parent the parent context
 	 */
 	public AbstractApplicationContext(@Nullable ApplicationContext parent) {
+		// 这里设置一个Resurce
 		this();
+		// 设置该引用上下文的父级
 		setParent(parent);
 	}
 
@@ -484,6 +488,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
+		// AbstractApplicationContext extends DefaultResourceLoader
 		return new PathMatchingResourcePatternResolver(this);
 	}
 
@@ -503,9 +508,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void setParent(@Nullable ApplicationContext parent) {
 		this.parent = parent;
+
 		if (parent != null) {
+			// 拿到父类的一个环境
 			Environment parentEnvironment = parent.getEnvironment();
 			if (parentEnvironment instanceof ConfigurableEnvironment) {
+				// 将给定父环境的活动配置文件、默认配置文件和属性源附加到此（子）环境各自的集合。
 				getEnvironment().merge((ConfigurableEnvironment) parentEnvironment);
 			}
 		}
@@ -552,7 +560,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+
+
 		synchronized (this.startupShutdownMonitor) {
+
+			// 步骤记录有关在ApplicationStartup期间发生的特定阶段或操作的指标。核心容器及其基础设施组件可以使用ApplicationStartup来标记应用程序启动期间的步骤，并收集有关执行上下文或其处理时间的数据。
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// Prepare this context for refreshing.
@@ -625,11 +637,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * active flag as well as performing any initialization of property sources.
 	 */
 	protected void prepareRefresh() {
+
 		// Switch to active.
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
 		this.active.set(true);
 
+		// 判断日志级别
 		if (logger.isDebugEnabled()) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Refreshing " + this);
@@ -640,10 +654,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
+		// 这里啥都没做
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		// 验证标记为必需的所有属性都是可解析的
+		// getEnvironment() = new StandardEnvironment();
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...

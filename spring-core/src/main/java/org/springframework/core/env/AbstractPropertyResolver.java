@@ -142,7 +142,10 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	@Override
 	public void validateRequiredProperties() {
+
+		// 未找到所需属性时引发异常
 		MissingRequiredPropertiesException ex = new MissingRequiredPropertiesException();
+
 		for (String key : this.requiredProperties) {
 			if (this.getProperty(key) == null) {
 				ex.addMissingRequiredProperty(key);
@@ -205,6 +208,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
 		if (this.strictHelper == null) {
+			// 用于处理其中具有占位符值的字符串的实用程序类。占位符采用${name}形式。使用PropertyPlaceholderHelper这些占位符可以替换用户提供的值。
 			this.strictHelper = createPlaceholderHelper(false);
 		}
 		return doResolvePlaceholders(text, this.strictHelper);
@@ -236,6 +240,8 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	}
 
 	private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {
+
+		// 将格式${name}的所有占位符替换为从提供的PropertyPlaceholderHelper.PlaceholderResolver返回的值。
 		return helper.replacePlaceholders(text, this::getPropertyAsRawString);
 	}
 

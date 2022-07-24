@@ -533,6 +533,11 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
 	@Override
 	public void validateRequiredProperties() throws MissingRequiredPropertiesException {
+		/**
+		this.propertyResolver = PropertiesPropertySource
+		PropertiesPropertySource是PropertyResolver实现，它根据一组基础PropertySources解析属性值。
+		@see  AbstractPropertyResolver#validateRequiredProperties
+		 */
 		this.propertyResolver.validateRequiredProperties();
 	}
 
