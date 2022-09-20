@@ -32,6 +32,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the {@link ResourceLoader} interface.
+ * DefaultResourceLoader功能有2：
+ * 1.增加基于protocolResolvers的拦截增强
+ * 2.基于ClassPathResource 、FileUrlResource、UrlResource解析，优先级从左到右
  *
  * <p>Used by {@link ResourceEditor}, and serves as base class for
  * {@link org.springframework.context.support.AbstractApplicationContext}.
@@ -48,9 +51,18 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultResourceLoader implements ResourceLoader {
 
+	/**
+	 * DefaultResourceLoader的classLoader
+	 */
 	@Nullable
 	private ClassLoader classLoader;
 
+	/**
+	 * ProtocolResolver
+	 * 协议特定资源句柄的解析策略。
+	 * 用作DefaultResourceLoader的 SPI，允许在不继承加载器实现（或应用程序上下文实现）的情况下处理自定义协议。
+	 * 可以用于自定义协议解析，比如spring就有一个 “classpath:”开头的特定协议（但是spring并不是自定义ProtocolResolver 实现来完成这个功能的）。
+	 */
 	private final Set<ProtocolResolver> protocolResolvers = new LinkedHashSet<>(4);
 
 	private final Map<Class<?>, Map<Resource, ?>> resourceCaches = new ConcurrentHashMap<>(4);
