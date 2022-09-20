@@ -28,20 +28,30 @@ import org.springframework.util.ResourceUtils;
  * <p>{@link DefaultResourceLoader} is a standalone implementation that is
  * usable outside an ApplicationContext and is also used by {@link ResourceEditor}.
  *
+ * 用于加载资源（例如，类路径或文件系统资源）的策略接口。需要org.springframework.context.ApplicationContext来提供此功能以及扩展的org.springframework.core.io.support.ResourcePatternResolver支持。
+ * DefaultResourceLoader是一个独立的实现，可以在 ApplicationContext 之外使用，也被ResourceEditor使用。
+ *
+ *
  * <p>Bean properties of type {@code Resource} and {@code Resource[]} can be populated
  * from Strings when running in an ApplicationContext, using the particular
  * context's resource loading strategy.
  *
  * @author Juergen Hoeller
- * @since 10.03.2004
  * @see Resource
  * @see org.springframework.core.io.support.ResourcePatternResolver
  * @see org.springframework.context.ApplicationContext
  * @see org.springframework.context.ResourceLoaderAware
+ * @since 10.03.2004
  */
 public interface ResourceLoader {
 
-	/** Pseudo URL prefix for loading from the class path: "classpath:". */
+	/**
+	 * Pseudo URL prefix for loading from the class path: "classpath:".
+	 * 用于将资源位置解析为文件系统中的文件的实用方法。主要供框架内部使用。
+	 * ResourceUtils 这个类定义了一堆常见的资源位置的前缀常量, 提供了一堆解析方法
+	 * 比如可以把url解析成文件的方法, 把字符串路径解析成文件或者url的方法
+	 * 这里声明一个以classpath为前缀的资源位置的常量 值为classpath:
+	 */
 	String CLASSPATH_URL_PREFIX = ResourceUtils.CLASSPATH_URL_PREFIX;
 
 
@@ -58,6 +68,10 @@ public interface ResourceLoader {
 	 * </ul>
 	 * <p>Note that a {@code Resource} handle does not imply an existing resource;
 	 * you need to invoke {@link Resource#exists} to check for existence.
+	 *
+	 * 给定一个资源路径,返回一个Resource接口
+	 * Resource接口是一个 spring 设计的一个底层访问的接口, 提供一个更加强大的底层访问能力
+	 *
 	 * @param location the resource location
 	 * @return a corresponding {@code Resource} handle (never {@code null})
 	 * @see #CLASSPATH_URL_PREFIX
@@ -71,6 +85,10 @@ public interface ResourceLoader {
 	 * <p>Clients which need to access the {@code ClassLoader} directly can do so
 	 * in a uniform manner with the {@code ResourceLoader}, rather than relying
 	 * on the thread context {@code ClassLoader}.
+	 *
+	 * 返回这个ResourceLoader使用的ClassLoader
+	 *
+	 *
 	 * @return the {@code ClassLoader}
 	 * (only {@code null} if even the system {@code ClassLoader} isn't accessible)
 	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()

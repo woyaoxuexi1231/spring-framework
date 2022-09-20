@@ -119,12 +119,16 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+
+		// 判断这个上下文当前是否持有一个bean factory，即至少已经刷新了一次并且还没有关闭。如果有，销毁并关闭。
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
 		}
 		try {
+			// 为此上下文创建一个内部 bean 工厂。为每次refresh()尝试调用。
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			// 指定一个 id 用于序列化目的，如果需要，允许将此 BeanFactory 从此 id 反序列化回 BeanFactory 对象。
 			beanFactory.setSerializationId(getId());
 			customizeBeanFactory(beanFactory);
 			loadBeanDefinitions(beanFactory);

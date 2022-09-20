@@ -254,7 +254,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param parent the parent context
 	 */
 	public AbstractApplicationContext(@Nullable ApplicationContext parent) {
-		// 这里设置一个Resurce
+		// 这里设置一个Resurcex
 		this();
 		// 设置该引用上下文的父级
 		setParent(parent);
@@ -568,9 +568,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// Prepare this context for refreshing.
+			// 开始计时，设置状态，注册侦听器
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 创建出当前的容器对象, 并解析xml文件和注解
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -664,6 +666,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
+		// 刷新前注册本地侦听器
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -675,6 +678,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
+		// 允许收集早期应用程序事件，一旦多播器可用就发布...
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
