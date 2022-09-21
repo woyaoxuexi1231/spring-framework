@@ -156,8 +156,11 @@ public class DefaultResourceLoader implements ResourceLoader {
 
 	@Override
 	public Resource getResource(String location) {
+
+		// 路径判空处理
 		Assert.notNull(location, "Location must not be null");
 
+		// 判断是否协议解析策略,尝试是否能够解析这个路径,如果可以直接返回对应的Resource
 		for (ProtocolResolver protocolResolver : getProtocolResolvers()) {
 			Resource resource = protocolResolver.resolve(location, this);
 			if (resource != null) {
