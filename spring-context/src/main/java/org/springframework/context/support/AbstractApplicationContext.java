@@ -942,7 +942,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.context.event.SimpleApplicationEventMulticaster
 	 */
 	protected void initApplicationEventMulticaster() {
+
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		/*
+		 返回本地 Bean 工厂是否包含给定名称的 Bean，忽略在祖先上下文中定义的 bean。
+		 获取 applicationEventMulticaster 这个bean
+		 */
 		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
 			this.applicationEventMulticaster =
 					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
