@@ -168,6 +168,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 			}
 		}
 
+
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
