@@ -285,7 +285,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	public AbstractApplicationContext() {
 		// 用于将位置模式（例如，Ant 样式的路径模式）解析为Resource对象的策略接口。
-		// Resource用来描述表示底层资源？？？ todo
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -295,7 +294,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param parent the parent context
 	 */
 	public AbstractApplicationContext(@Nullable ApplicationContext parent) {
-		// 这里设置一个Resurcex
+		// 这里设置一个Resource
 		this();
 		// 设置该引用上下文的父级
 		setParent(parent);
@@ -624,7 +623,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// Tell the subclass to refresh the internal bean factory.
 			// 创建出当前的容器对象, 并解析xml文件和注解
 			/*
-			这里构建一个BeanFactory容器
+			这里构建一个BeanFactory容器(DefaultListableBeanFactory)
 			BeanFactory是一个基础类型的IOC容器, 提供完整的IOC服务支持
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
@@ -797,7 +796,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// AbstractRefreshableApplicationContext
 		refreshBeanFactory();
+		// 返回创建好的beanFactory
 		return getBeanFactory();
 	}
 

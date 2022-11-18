@@ -80,7 +80,7 @@ final class PostProcessorRegistrationDelegate {
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
 
-
+		// BeanDefinitionRegistry接口定义抽象了Bean的注册逻辑 通常情况下，具体的BeanFactory实现类会实现这个接口来管理Bean的注册。
 		if (beanFactory instanceof BeanDefinitionRegistry registry) {
 			/*
 			先定义一个BeanFactoryPostProcessor的队列
@@ -110,10 +110,10 @@ final class PostProcessorRegistrationDelegate {
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
 			/**
-			 * getBeanNamesForType
+			 * getBeanNamesForType 返回与给定类型（包括子类）匹配的 bean 的名称，从 bean 定义或 getObjectType 的值（如果是 FactoryBeans）判断。
 			 * type – 要匹配的类或接口.the class or interface to match, or null for all bean names
 			 * includeNonSingletons – 是否也包含原型或作用域 bean 或仅包含单例（也适用于 FactoryBeans）
-			 * allowEagerInit – 是否初始化由 FactoryBeans（或具有“factory-bean”引用的工厂方法）创建的惰性 init 单例和对象以进行类型检查。
+			 * allowEagerInit – 表示是否提前部分初始化 FactoryBean（为什么说是部分初始化？是因为只实例化 FactoryBean，而不进行属性注入）。是否初始化由 FactoryBeans（或具有“factory-bean”引用的工厂方法）创建的惰性 init 单例和对象以进行类型检查。
 			 */
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);

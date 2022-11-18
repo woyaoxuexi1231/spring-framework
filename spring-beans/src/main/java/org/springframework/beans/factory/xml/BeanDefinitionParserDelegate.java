@@ -421,6 +421,10 @@ public class BeanDefinitionParserDelegate {
 			aliases.addAll(Arrays.asList(nameArr));
 		}
 
+
+		/*
+		这里也就解释了为什么 id 和 name都可以作为 bean 的名字, 如果没有 id 那么会以 name 作为名字
+		 */
 		String beanName = id;
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
@@ -430,12 +434,16 @@ public class BeanDefinitionParserDelegate {
 			}
 		}
 
+		// beanName 要求在同一层级中（如在同一个beans标签中）是唯一的，但是在不同层级中是可以重复的，在重复的并且允许覆盖的情况下，会覆盖。
 		if (containingBean == null) {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
+		// 这里获取到这个bean的所有定义信息
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
+
+			// 如果既没有指定 id 也没有指定 name 作为 beanName
 			if (!StringUtils.hasText(beanName)) {
 				try {
 					if (containingBean != null) {
@@ -443,10 +451,16 @@ public class BeanDefinitionParserDelegate {
 								beanDefinition, this.readerContext.getRegistry(), true);
 					}
 					else {
+
+						// 这里会以这个 bean 的 className 作为bena的名字
 						beanName = this.readerContext.generateBeanName(beanDefinition);
 						// Register an alias for the plain bean class name, if still possible,
 						// if the generator returned the class name plus a suffix.
 						// This is expected for Spring 1.2/2.0 backwards compatibility.
+						/*
+						纯翻译
+						如果可能，如果生成器返回了类名加上后缀，则为纯 Bean 类名注册一个别名。这对于 Spring 1.2/2.0 向后兼容性来说是预期的。
+						 */
 						String beanClassName = beanDefinition.getBeanClassName();
 						if (beanClassName != null &&
 								beanName.startsWith(beanClassName) && beanName.length() > beanClassName.length() &&
@@ -464,6 +478,8 @@ public class BeanDefinitionParserDelegate {
 					return null;
 				}
 			}
+
+			// 把 bean定义, bean名字和定义的别名封装到BeanDefinitionHolder里返回
 			String[] aliasesArray = StringUtils.toStringArray(aliases);
 			return new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
 		}
@@ -478,16 +494,20 @@ public class BeanDefinitionParserDelegate {
 	protected void checkNameUniqueness(String beanName, List<String> aliases, Element beanElement) {
 		String foundName = null;
 
+		// 如果定义了id 并且在保存了已经使用的bean名字的set集合里面能找到, 那么说这个名字肯定是不行的, 重复了
 		if (StringUtils.hasText(beanName) && this.usedNames.contains(beanName)) {
 			foundName = beanName;
 		}
+		// 如果说没有定义id但是定义了name,也会去找这些name是否已经被使用了
 		if (foundName == null) {
 			foundName = CollectionUtils.findFirstMatch(this.usedNames, aliases);
 		}
+		// 判断一下是否bean的名字已经被使用了, 被使用了就搞个错误 BeanDefinitionParsingException 说重复了
 		if (foundName != null) {
 			error("Bean name '" + foundName + "' is already used in this <beans> element", beanElement);
 		}
 
+		// 这里是已经校验完毕, 没有重名, 那么记录这些名字, 这些名字已经被使用了, 后面的bean不能再用了
 		this.usedNames.add(beanName);
 		this.usedNames.addAll(aliases);
 	}
@@ -500,29 +520,61 @@ public class BeanDefinitionParserDelegate {
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
 
+		// 用于保存在分析阶段使用的状态信息
 		this.parseState.push(new BeanEntry(beanName));
 
+		// 拿到这个bean的classname
 		String className = null;
 		if (ele.hasAttribute(CLASS_ATTRIBUTE)) {
 			className = ele.getAttribute(CLASS_ATTRIBUTE).trim();
 		}
+
+		// parent标签
 		String parent = null;
 		if (ele.hasAttribute(PARENT_ATTRIBUTE)) {
 			parent = ele.getAttribute(PARENT_ATTRIBUTE);
 		}
 
 		try {
+			/*
+			AbstractBeanDefinition - 具体的、成熟的 BeanDefinition 类的基类，分解了 GenericBeanDefinition、RootBeanDefinition 和 ChildBeanDefinition 的常见属性。
+			这个类里面存储这个具体的 bean 的一些属性(类似于 scope, lazy-init, autowire)
+			 */
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			// 这里去解析这个bean的属性, 然后把这些信息吸入 bd 里面
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
+			// 解析 bean 标签内的属性
+			/*
+			1. 从中提取出 meta 元素的值(这里其实就是去拿bean定义的)，并构建出 BeanMetadataAttribute 对象，最后存入 GenericBeanDefinition 对象中
+			 */
 			parseMetaElements(ele, bd);
+
+			// 解析 lookup-method 和 replaced-method
+			/*
+			2. 提取 lookup-method 属性, 一种特殊的方法注入，它是把一个方法声明为返回某种类型的 bean，而实际要返回的 bean 是在配置文件里面配置的
+			Spring 框架通过使用 CGLIB 库中的字节码来动态生成覆盖该方法的子类，从而实现此方法注入。所以被覆盖的类不能为 final，并且要被覆盖的方法也不能为 final 。
+			还需注意 scope 的配置，如果 scope 配置为 singleton，则每次调用 getBean 方法 ，返回的对象都是相同的；如果 scope 配置为 prototype，则每次调用返回都不同。
+			 */
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			/*
+			3. replaced-method - 方法替换：可以在运行时用新的方法替换现有的方法，与之前的 look-up 不同的是，replaced-method 不但可以动态地替换返回实体 bean ，而且还能动态地更改原有方法的逻辑。
+			 */
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
+			//
+			/*
+			4. constructor-arg - bean内部的属性通过构造函数的方式注入
+			 */
 			parseConstructorArgElements(ele, bd);
+			/*
+			5. property - 直接设置property属性来注入bean内部的属性
+			 */
 			parsePropertyElements(ele, bd);
+			/*
+			6. qualifier - 由于该类可能存在多个子类的bean, 导致在注入时无法确定哪一个, 使用qualifier来帮助我们确定使用其中的哪一个
+			 */
 			parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
@@ -1443,6 +1495,8 @@ public class BeanDefinitionParserDelegate {
 
 		String namespaceUri = getNamespaceURI(node);
 		if (namespaceUri != null && !isDefaultNamespace(namespaceUri)) {
+
+			// 这里会去获取命名空间的解析器, 这里应该是留给封装spring框架的人用的
 			NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 			if (handler != null) {
 				BeanDefinitionHolder decorated =
@@ -1450,7 +1504,7 @@ public class BeanDefinitionParserDelegate {
 				if (decorated != null) {
 					return decorated;
 				}
-			}
+			} // 如果找不到自定义的命名空间解析器但是这个标签又是 spring 官方的命名空间那么就报错咯
 			else if (namespaceUri.startsWith("http://www.springframework.org/schema/")) {
 				error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", node);
 			}

@@ -128,9 +128,23 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		try {
 			// 为此上下文创建一个内部 bean 工厂。为每次refresh()尝试调用。
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+
 			// 指定一个 id 用于序列化目的，如果需要，允许将此 BeanFactory 从此 id 反序列化回 BeanFactory 对象。
 			beanFactory.setSerializationId(getId());
+
+			/*
+			 设置一些 beanFactory的自定义参数
+			 这里包含了 allowBeanDefinitionOverriding 和 allowCircularReferences
+			 allowBeanDefinitionOverriding 在后面bean定义放入beanDefinitionMap时会用到
+			 */
 			customizeBeanFactory(beanFactory);
+
+			/**
+			 * todo
+			 * 加载bean定义
+			 * 这里会读取我们指定的xml配置文件, 然后从配置文件中读取所有的bean定义信息, 并且把这些bean定义信息放入beanDefinitionMap中去
+			 * 也就是说, 我们的bean定义是在容器初始化之后, 在容器创建好之后就beanDefinitionMap里面也就创建好了, 在这个阶段也就能拿到所有的bean定义信息了
+			 */
 			loadBeanDefinitions(beanFactory);
 			this.beanFactory = beanFactory;
 		}
@@ -216,9 +230,12 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
+
+		// 运行beanDefinition覆盖，默认情况下，如果beanDefinitionMap有重复的key存在时就会抛异常，就是由这个参数决定的。如果把这个参数设置为true，那么就允许相同key情况下beanDefinition实例的覆盖。
 		if (this.allowBeanDefinitionOverriding != null) {
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
+		// allowCircularReferences属性含义 设置是否允许bean之间的循环引用并自动尝试解析它们。
 		if (this.allowCircularReferences != null) {
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}

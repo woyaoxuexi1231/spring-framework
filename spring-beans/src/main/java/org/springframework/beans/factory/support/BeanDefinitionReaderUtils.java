@@ -138,6 +138,8 @@ public abstract class BeanDefinitionReaderUtils {
 	 */
 	public static String uniqueBeanName(String beanName, BeanDefinitionRegistry registry) {
 		String id = beanName;
+
+		// 这里会添加一个后缀, 这个后缀具体有什么作用? todo
 		int counter = -1;
 
 		// Increase counter until the id is unique.

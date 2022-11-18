@@ -302,11 +302,20 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * and registering it with the registry.
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
+
+		// 这里拿到一个完整的包含bean定义以及bean相关信息的BeanDefinitionHolder
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
+
+			/*
+			 decorateBeanDefinitionIfRequired是对自定义的子标签和属性进行处理的（对于程序默认的标签处理其实是直接略过的），底层修饰的细节为 decorateIfRequired 方法
+			 */
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.
+				/*
+				*这里将会把bean定义放入beanDefinitionMap中*
+				 */
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
 			catch (BeanDefinitionStoreException ex) {

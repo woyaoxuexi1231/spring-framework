@@ -527,9 +527,17 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public String[] getBeanNamesForType(@Nullable Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+
+		/*
+		configurationFrozen表示是否冻结BeanDefinition，不允许修改，因此查询的结果可能有误一旦调用refresh方法，则configurationFrozen=true，也就是容器启动过程中会走if语句
+		type=null，查找所有Bean?
+		!allowEagerInit 表示不允许提前初始化FactoryBean，因此可能获取不到Bean的类型
+		*/
 		if (!isConfigurationFrozen() || type == null || !allowEagerInit) {
 			return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
 		}
+
+		// 2. 允许使用缓存，此时容器已经启动完成，bean已经加载，BeanDefinition不允许修改
 		Map<Class<?>, String[]> cache =
 				(includeNonSingletons ? this.allBeanNamesByType : this.singletonBeanNamesByType);
 		String[] resolvedBeanNames = cache.get(type);
@@ -549,10 +557,26 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// Check all bean definitions.
 		for (String beanName : this.beanDefinitionNames) {
 			// Only consider bean as eligible if the bean name is not defined as alias for some other bean.
+			/*
+			仅当 Bean 名称未定义为其他某个 Bean 的别名时，才将 Bean 视为合格。
+			isAlias 判断当前 beanName 是否为别名
+			 */
 			if (!isAlias(beanName)) {
 				try {
+
+					/*
+					返回合并的 RootBeanDefinition，如果指定的 Bean 对应于子 Bean 定义，则遍历父 Bean 定义。
+					BeanDefinition 用于保存 Bean 的相关信息，包括属性、构造方法参数、依赖的 Bean 名称及是否单例、延迟加载等，它是实例化 Bean 的原材料，Spring 就是根据 BeanDefinition 中的信息实例化 Bean。
+					AnnotatedBeanDefinition 是 BeanDefinition 子接口之一，该接口扩展了 BeanDefinition 的功能，其用来操作注解元数据。一般情况下，通过注解方式得到的 Bean（@Component、@Bean），其 BeanDefinition 类型都是该接口的实现类。
+					AbstractBeanDefinition 是 BeanDefinition 的子抽象类，也是其他 BeanDefinition 类型的基类，其实现了接口中定义的一系列操作方法，并定义了一系列的常量属性，这些常量会直接影响到 Spring 实例化 Bean 时的策略。核心属性如下。
+					RootBeanDefinition 该类继承自 AbstractBeanDefinition，它可以单独作为一个 BeanDefinition，也可以作为其他 BeanDefinition 的父类。
+					ChildBeanDefinition 该类继承自 AbstractBeanDefinition。其相当于一个子类，不可以单独存在，必须依赖一个父 BeanDefinition，构造 ChildBeanDefinition 时，通过构造方法传入父 BeanDefinition 的名称或通过 setParentName 设置父名称。它可以从父类继承方法参数、属性值，并可以重写父类的方法，同时也可以增加新的属性或者方法。若重新定义 init 方法，destroy 方法或者静态工厂方法，ChildBeanDefinition 会重写父类的设置。
+					GenericBeanDefinition 是 Spring 2.5 以后新引入的 BeanDefinition，是 ChildBeanDefinition 更好的替代者，它同样可以通过 setParentName 方法设置父 BeanDefinition。
+					ConfigurationClassBeanDefinition 该类继承自 RootBeanDefinition ，并实现了 AnnotatedBeanDefinition 接口。这个 BeanDefinition 用来描述在标注 @Configuration 注解的类中，通过 @Bean 注解实例化的 Bean。
+					 */
 					RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 					// Only check bean definition if it is complete.
+					// 仅检查 Bean 定义是否完整。
 					if (!mbd.isAbstract() && (allowEagerInit ||
 							(mbd.hasBeanClass() || !mbd.isLazyInit() || isAllowEagerClassLoading()) &&
 									!requiresEagerInitForType(mbd.getFactoryBeanName()))) {
@@ -966,11 +990,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 尝试在 beanDefinitionMap 里面获取是否已经存在这个beanName
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
+			// 创建beanFactory的时候会选择性的这是这个参数, 即后定义的bean会覆盖之前同名的bean
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
-			}
+			} // @Role注解同理, 作用 todo?
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {
@@ -978,7 +1004,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"' with a framework-generated bean definition: replacing [" +
 							existingDefinition + "] with [" + beanDefinition + "]");
 				}
-			}
+			} // 这两个bean定义其实是一样的
 			else if (!beanDefinition.equals(existingDefinition)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Overriding bean definition for bean '" + beanName +
@@ -993,9 +1019,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			// 这里进行覆盖
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
+			// 判断这个bean的名字是否为之前的bean注册的别名, 如果之前有注册过的别名了并且不允许覆盖则报错
 			if (isAlias(beanName)) {
 				if (!isAllowBeanDefinitionOverriding()) {
 					String aliasedName = canonicalName(beanName);
@@ -1013,8 +1041,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					removeAlias(beanName);
 				}
 			}
+			// 这里判断一下是否 bean的这个创建过程已经执行过了,
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
+				// 原文: 无法再修改启动时集合元素（用于稳定迭代）
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);

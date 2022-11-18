@@ -92,6 +92,8 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
 		initBeanDefinitionReader(beanDefinitionReader);
+
+		// 这里加载所有的bean定义, 并且会把bean定义放入beanDefinitionMap当中去
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
