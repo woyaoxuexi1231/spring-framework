@@ -439,7 +439,7 @@ public class BeanDefinitionParserDelegate {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
-		// 这里获取到这个bean的所有定义信息
+		// 这里获取到这个 bean 的所有定义信息
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 
@@ -452,7 +452,7 @@ public class BeanDefinitionParserDelegate {
 					}
 					else {
 
-						// 这里会以这个 bean 的 className 作为bena的名字
+						// 这里会以这个 bean 的 className 作为 bean 的名字
 						beanName = this.readerContext.generateBeanName(beanDefinition);
 						// Register an alias for the plain bean class name, if still possible,
 						// if the generator returned the class name plus a suffix.
@@ -541,7 +541,7 @@ public class BeanDefinitionParserDelegate {
 			这个类里面存储这个具体的 bean 的一些属性(类似于 scope, lazy-init, autowire)
 			 */
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-			// 这里去解析这个bean的属性, 然后把这些信息吸入 bd 里面
+			// 这里去解析这个 bean 的属性, 然后把这些信息吸入 bd 里面
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
@@ -900,7 +900,14 @@ public class BeanDefinitionParserDelegate {
 				error("Multiple 'property' definitions for property '" + propertyName + "'", ele);
 				return;
 			}
+
+			/*
+			这里拿到 bean 定义的属性值(ref 类型或者是 value)
+			ref 类型的会创建一个 RuntimeBeanReference 类型来保存属性信息
+			value 会创建一个 TypedStringValue 类型来保存属性信息
+			 */
 			Object val = parsePropertyValue(ele, bd, propertyName);
+			// 创建 PropertyValue 来保存这些属性值
 			PropertyValue pv = new PropertyValue(propertyName, val);
 			parseMetaElements(ele, pv);
 			pv.setSource(extractSource(ele));
@@ -980,6 +987,9 @@ public class BeanDefinitionParserDelegate {
 			}
 		}
 
+		/*
+		这是判断当前这个属性的类型是 ref 类型的还是直接写入值的 value
+		 */
 		boolean hasRefAttribute = ele.hasAttribute(REF_ATTRIBUTE);
 		boolean hasValueAttribute = ele.hasAttribute(VALUE_ATTRIBUTE);
 		if ((hasRefAttribute && hasValueAttribute) ||
@@ -993,11 +1003,21 @@ public class BeanDefinitionParserDelegate {
 			if (!StringUtils.hasText(refName)) {
 				error(elementName + " contains empty 'ref' attribute", ele);
 			}
+
+			/*
+			如果是 ref 类型的值
+			创建一个新的运行时 Bean引用给定的 Bean 名称。
+			 */
 			RuntimeBeanReference ref = new RuntimeBeanReference(refName);
 			ref.setSource(extractSource(ele));
 			return ref;
 		}
 		else if (hasValueAttribute) {
+
+			/*
+			如果是以 value 塞入值
+			为给定的字符串值创建新的类型字符串值。
+			 */
 			TypedStringValue valueHolder = new TypedStringValue(ele.getAttribute(VALUE_ATTRIBUTE));
 			valueHolder.setSource(extractSource(ele));
 			return valueHolder;

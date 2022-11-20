@@ -24,8 +24,8 @@ package org.springframework.context.annotation;
  * {@link ConfigurationPhase#REGISTER_BEAN REGISTER_BEAN} {@link ConfigurationPhase}.
  *
  * @author Phillip Webb
- * @since 4.0
  * @see Configuration
+ * @since 4.0
  */
 public interface ConfigurationCondition extends Condition {
 
@@ -46,6 +46,9 @@ public interface ConfigurationCondition extends Condition {
 		 * <p>If the condition does not match at this point, the {@code @Configuration}
 		 * class will not be added.
 		 */
+		/*
+		应在分析@Configuration类时评估条件。如果此时条件不匹配，则不会添加@Configuration类。
+		 */
 		PARSE_CONFIGURATION,
 
 		/**
@@ -54,6 +57,9 @@ public interface ConfigurationCondition extends Condition {
 		 * {@code @Configuration} classes from being added.
 		 * <p>At the time that the condition is evaluated, all {@code @Configuration}
 		 * classes will have been parsed.
+		 */
+		/*
+		添加常规（非@Configuration）bean 时应评估条件。该条件不会阻止添加@Configuration类。在评估条件时，将分析所有@Configuration类。
 		 */
 		REGISTER_BEAN
 	}

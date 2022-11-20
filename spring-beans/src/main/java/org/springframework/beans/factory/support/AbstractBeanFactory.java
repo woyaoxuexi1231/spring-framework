@@ -245,6 +245,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object beanInstance;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		/*
+		急切地检查单一实例缓存中是否有手动注册的单一实例。
+		 */
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -256,17 +259,32 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			/*
+			如果缓存中已经有了, 那么直接返回
+			 */
 			beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			/*
+			isPrototypeCurrentlyInCreation - 返回指定的原型 Bean 当前是否正在创建（在当前线程中）。
+			如果我们已经在创建这个 bean 实例，则失败：我们假设在循环引用中。
+			*循环依赖的发现机制*
+			Spring容器在创建A时，会先去“当前创建bean”池中判断是否已经在池中，如果不存在，就创建bean
+			在创建之前会把正在创建的A，放在一个“当前创建bean池”中，这个池子里面的Bean都是正在创建中的Bean，
+			然后创建A的时候发先依赖B，就去实例化创建B，同时也会将B放在“当前创建bean”池中，然后发先创建B依赖A，就会去创建A，
+			但是这时候发现A已经在“当前创建bean”池中了，就知道发生了循环依赖，这就是循环依赖的发现机制
+			 */
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
 			// Check if bean definition exists in this factory.
+			/*
+			检查此工厂中是否存在 Bean 定义。
+			 */
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -286,7 +304,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					return (T) parentBeanFactory.getBean(nameToLookup);
 				}
 			}
-
+			// 获取实例是否用于类型检查，而不是用于实际使用
 			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
 			}
@@ -301,6 +319,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				/*
+				这里去获取当前这个 bean 所依赖的 bean
+				 */
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -323,6 +344,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+
+							// 这里开始创建bean
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

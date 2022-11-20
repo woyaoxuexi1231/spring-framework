@@ -634,6 +634,9 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * {@link Inherited @Inherited} annotations and without searching
 		 * superclasses or implemented interfaces.
 		 */
+		/*
+		仅查找直接注解，不考虑@Inherited，超类或者接口。
+		 */
 		DIRECT,
 
 		/**
@@ -644,6 +647,9 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * all other {@linkplain AnnotatedElement annotated elements}.
 		 * <p>This strategy does not search implemented interfaces.
 		 */
+		/*
+		查找所有直接注解，或者superclass应用@Inherited了的注解。仅适用于Class。其他AnnotatedElement 不适用。
+		 */
 		INHERITED_ANNOTATIONS,
 
 		/**
@@ -652,6 +658,9 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * the annotations do not need to be meta-annotated with
 		 * {@link Inherited @Inherited}.
 		 * <p>This strategy does not search implemented interfaces.
+		 */
+		/*
+		查找所有直接注解，或者超类的注解，与INHERITED_ANNOTATIONS相似，但是元注解不需要应用@Inherited
 		 */
 		SUPERCLASS,
 
@@ -664,6 +673,9 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * {@code true}.
 		 * <p>Superclass and enclosing class annotations do not need to be
 		 * meta-annotated with {@link Inherited @Inherited}.
+		 */
+		/*
+		包含superclass，接口，注解不需要应用@Inherited
 		 */
 		TYPE_HIERARCHY
 

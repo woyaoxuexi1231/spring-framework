@@ -68,6 +68,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowire
 	 * @see #autowireBeanProperties
 	 */
+	/*
+	指示没有外部定义的自动接线的常量。请注意，BeanFactoryAware 等和注释驱动的注入仍将应用。
+	 */
 	int AUTOWIRE_NO = 0;
 
 	/**
@@ -76,6 +79,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #createBean
 	 * @see #autowire
 	 * @see #autowireBeanProperties
+	 */
+	/*
+	按名称指示 Autowire Bean 属性的常量（适用于所有 Bean 属性资源库）。
 	 */
 	int AUTOWIRE_BY_NAME = 1;
 
@@ -86,6 +92,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowire
 	 * @see #autowireBeanProperties
 	 */
+	/*
+	指示按类型 Autowire Bean 属性的常量（适用于所有 Bean 属性资源库）。
+	 */
 	int AUTOWIRE_BY_TYPE = 2;
 
 	/**
@@ -93,6 +102,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * can be satisfied (involves resolving the appropriate constructor).
 	 * @see #createBean
 	 * @see #autowire
+	 */
+	/*
+	指示 Autowire 可以满足的最贪婪的构造函数的常量（涉及解析相应的构造函数）。
 	 */
 	int AUTOWIRE_CONSTRUCTOR = 3;
 
@@ -103,6 +115,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowire
 	 * @deprecated as of Spring 3.0: If you are using mixed autowiring strategies,
 	 * prefer annotation-based autowiring for clearer demarcation of autowiring needs.
+	 */
+	/*
+	常量，指示通过自省 Bean 类来确定适当的 Autowire 策略。
 	 */
 	@Deprecated
 	int AUTOWIRE_AUTODETECT = 4;

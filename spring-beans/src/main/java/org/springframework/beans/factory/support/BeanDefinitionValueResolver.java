@@ -355,6 +355,9 @@ public class BeanDefinitionValueResolver {
 			else {
 				String resolvedName;
 				if (beanType != null) {
+					/*
+					根据传入的类型，从Spring容器(包括父子容器)中查找出指定类型下唯一的 Bean ，并将 beanName 与 beanInstance 包装成 NamedBeanHolder 对象返回
+					 */
 					NamedBeanHolder<?> namedBean = this.beanFactory.resolveNamedBean(beanType);
 					bean = namedBean.getBeanInstance();
 					resolvedName = namedBean.getBeanName();

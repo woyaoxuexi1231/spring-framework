@@ -453,6 +453,8 @@ abstract class AnnotationsScanner {
 				boolean allIgnored = true;
 				for (int i = 0; i < annotations.length; i++) {
 					Annotation annotation = annotations[i];
+
+					// 判断整个注解是否是需要被忽略的, 然后判断这个注解的所有属性是否都可以进行安全的访问而不会报错
 					if (isIgnorable(annotation.annotationType()) ||
 							!AttributeMethods.forAnnotationType(annotation.annotationType()).isValid(annotation)) {
 						annotations[i] = null;
@@ -462,6 +464,7 @@ abstract class AnnotationsScanner {
 					}
 				}
 				annotations = (allIgnored ? NO_ANNOTATIONS : annotations);
+				// 把bean信息和bean包含的注解保存起来
 				if (source instanceof Class || source instanceof Member) {
 					declaredAnnotationCache.put(source, annotations);
 					cached = true;
@@ -481,13 +484,19 @@ abstract class AnnotationsScanner {
 	static boolean isKnownEmpty(AnnotatedElement source, SearchStrategy searchStrategy,
 			Predicate<Class<?>> searchEnclosingClass) {
 
+		// 先判断一下整个bean是不是在java包下的,
 		if (hasPlainJavaAnnotationsOnly(source)) {
 			return true;
 		}
+
+		/**
+		 * 判断是否没有继承关系，即没有父类、接口、getEnclosingClass()的注解按照普通注解处理
+		 */
 		if (searchStrategy == SearchStrategy.DIRECT || isWithoutHierarchy(source, searchStrategy, searchEnclosingClass)) {
 			if (source instanceof Method method && method.isBridge()) {
 				return false;
 			}
+			// 这里会把bean的注解信息保存起来
 			return getDeclaredAnnotations(source, false).length == 0;
 		}
 		return false;
@@ -512,7 +521,7 @@ abstract class AnnotationsScanner {
 	@SuppressWarnings("deprecation")
 	private static boolean isWithoutHierarchy(AnnotatedElement source, SearchStrategy searchStrategy,
 			Predicate<Class<?>> searchEnclosingClass) {
-
+		// 判断是否是Object对象
 		if (source == Object.class) {
 			return true;
 		}

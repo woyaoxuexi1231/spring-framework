@@ -1,8 +1,12 @@
 package org.springframework.bean;
 
+import org.springframework.TestBean;
+
 public class Season {
 
 	private String name;
+
+	private TestBean testBean;
 
 	public String getName() {
 		return name;
@@ -10,6 +14,14 @@ public class Season {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public TestBean getTestBean() {
+		return testBean;
+	}
+
+	public void setTestBean(TestBean testBean) {
+		this.testBean = testBean;
 	}
 
 	@Override

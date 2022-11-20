@@ -186,11 +186,18 @@ public abstract class BeanUtils {
 	public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws BeanInstantiationException {
 		Assert.notNull(ctor, "Constructor must not be null");
 		try {
+			/*
+			使给定的构造函数可访问，并在必要时显式设置其可访问性。setAccess（true） 方法仅在实际需要时才调用，以避免不必要的冲突
+			 */
 			ReflectionUtils.makeAccessible(ctor);
+			/*
+			确定是否存在 Kotlin 反射 && 确定给定的类是否为 Kotlin 类型（上面存在 Kotlin 元数据）。
+			 */
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
 				return KotlinDelegate.instantiateClass(ctor, args);
 			}
 			else {
+				// 返回构造函数中的参数类型
 				Class<?>[] parameterTypes = ctor.getParameterTypes();
 				Assert.isTrue(args.length <= parameterTypes.length, "Can't specify more arguments than constructor parameters");
 				Object[] argsWithDefaultValues = new Object[args.length];
@@ -203,6 +210,10 @@ public abstract class BeanUtils {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				/*
+				通过构造函数返回对象实例
+				这个时候应该是还没有注入那些需要自动注入的对象
+				 */
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}

@@ -93,7 +93,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 		// then proceed with actually loading the bean definitions.
 		initBeanDefinitionReader(beanDefinitionReader);
 
-		// 这里加载所有的bean定义, 并且会把bean定义放入beanDefinitionMap当中去
+		// 这里加载所有的bean定义, 并且会把 bean 定义放入 beanDefinitionMap 当中去
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 

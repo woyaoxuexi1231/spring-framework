@@ -256,9 +256,15 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 			Predicate<Class<?>> searchEnclosingClass, RepeatableContainers repeatableContainers,
 			AnnotationFilter annotationFilter) {
 
+		/*
+		1. 会判断这个bean所在位置, 是否是在java开头的包里的
+		2. 会或这个bean的所有注解, 是否没有注解信息
+		满足上面两个条件就会返回这个 NONE
+		 */
 		if (AnnotationsScanner.isKnownEmpty(element, searchStrategy, searchEnclosingClass)) {
 			return NONE;
 		}
+		// 这里把bean的信息封装一下进行返回
 		return new TypeMappedAnnotations(element, searchStrategy, searchEnclosingClass, repeatableContainers, annotationFilter);
 	}
 

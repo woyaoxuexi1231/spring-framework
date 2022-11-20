@@ -303,7 +303,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
 
-		// 这里拿到一个完整的包含bean定义以及bean相关信息的BeanDefinitionHolder
+		// 这里拿到一个完整的包含 bean 定义以及 bean 相关信息的 BeanDefinitionHolder
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
 
@@ -314,7 +314,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			try {
 				// Register the final decorated instance.
 				/*
-				*这里将会把bean定义放入beanDefinitionMap中*
+				这里将会把 bean 定义放入 beanDefinitionMap 中*
 				 */
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}

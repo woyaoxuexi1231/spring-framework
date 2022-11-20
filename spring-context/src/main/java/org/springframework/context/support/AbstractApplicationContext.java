@@ -621,10 +621,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			// 创建出当前的容器对象, 并解析xml文件和注解
+			// 创建出当前的容器对象
 			/*
 			这里构建一个BeanFactory容器(DefaultListableBeanFactory)
 			BeanFactory是一个基础类型的IOC容器, 提供完整的IOC服务支持
+			如果xml容器那么会对xml文件进行解析和构建出完整的beanDefinitionMap
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
@@ -633,9 +634,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			准备一下这个容器, 添加一些参数配置, 给容器添加一些处理器
 			使用beanFactory之前对beanFactory准备（设置一些信息：类加载器、解析器、自动装配等等）
 			设置了类加载器
-			为 beanFactory 注册一个ResourceEditorRegistrar
-			注册了一些BeanPostProcessor
-			设置了一些默认的环境bean
+			为 beanFactory 注册一个 ResourceEditorRegistrar
+			注册了一些 BeanPostProcessor
+			设置了一些默认的环境 bean
 			 */
 			prepareBeanFactory(beanFactory);
 
@@ -646,14 +647,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				允许在上下文子类中对 Bean 工厂进行后处理。
 				beanFactory准备工作完成后进行的后置处理，可以在创建bean之前修改bean的定义属性  在bean配置文件加载后，bean实例化之前执行。只为容器的某些特定子类提供特殊的post时间处理器。null方法，可自行实现
 				作用是在BeanFactory准备工作完成后做一些定制化的处理，一般结合BeanPostProcessor接口的实现类一起使用，注入一些重要资源（类似Application的属性和ServletContext的属性）
-				 */
+				todo
+				*/
 				postProcessBeanFactory(beanFactory);
 
 				/*
 				该步骤将创建并开始调用应用程序启动，并分配一个唯一ID。
 				然后，我们可以在处理过程中使用StartupStep.Tags附加信息
 				然后我们需要标记步骤的结束（）
-				其实就是记录一些指标信息, 时间啦什么的
+				其实就是记录一些指标信息, 时间啦什么的,
 				 */
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 
@@ -687,26 +689,41 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
-				// 初始化容器事件传播器（事件派发）
+				/*
+				初始化容器事件传播器（事件派发）
+				ApplicationEventMulticaster 这个接口可以管理很多个ApplicationListener对象。并将事件发布给这些监听器。
+				ApplicationEventPublisher接口是ApplicationContext接口的父接口，这个接口也就是ApplicationContext对象可以用一个ApplicationEventMulticaster对象来发布事件给监听器。
+				这个接口的方法主要是添加、删除ApplicationListener（事件监听器）。还有最重要的就是发布的事件给相匹配的监听器。
+				todo ?
+				 */
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
-				// 调用子类的某些特殊bean的初始化：
-				// 模板方法，可以重写该方法以添加特定于上下文的刷新工作。
-				// 在初始化特殊bean时，在实例化单例对象之前调用。
-				// 子类重写这个方法，在容器刷新的时候可以自定义逻辑；如创建Tomcat，Jetty等WEB服务器
+				/*
+				调用子类的某些特殊bean的初始化
+				模板方法，可以重写该方法以添加特定于上下文的刷新工作。
+				在初始化特殊bean时，在实例化单例对象之前调用。
+				子类重写这个方法，在容器刷新的时候可以自定义逻辑；如创建Tomcat，Jetty等WEB服务器
+				 */
 				onRefresh();
 
 				// Check for listener beans and register them.
-				// 为事件传播器注册事件监听器
+				/*
+				为事件传播器注册事件监听器
+				这里会在 beanDefinitionMap 中去拿所有的 ApplicationListener 注册到
+				 */
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
-				// 初始化所有剩下的非懒加载的单例bean
+				/*
+				这里会初始化所有剩下的非懒加载的单例bean
+				 */
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
-				// 完成context的刷新。主要是调用LifecycleProcessor的onRefresh()方法，并且发布事件（ContextRefreshedEvent）
+				/*
+				完成context的刷新。主要是调用LifecycleProcessor的onRefresh()方法，并且发布事件（ContextRefreshedEvent）
+				 */
 				finishRefresh();
 
 			} catch (BeansException ex) {
@@ -1009,12 +1026,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
+		// 原文: 首先注册静态指定的侦听器。
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
+		/*
+
+		 */
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
@@ -1035,7 +1056,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+
 		// Initialize conversion service for this context.
+		/*
+		为此上下文初始化转换服务。
+		 */
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -1045,23 +1070,42 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no BeanFactoryPostProcessor
 		// (such as a PropertySourcesPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+		/*
+		如果之前没有 BeanFactoryPostProcessor（例如 PropertySourcesPlaceholderConfigurer bean）注册默认的嵌入值解析器：此时，主要用于解析注释属性值。
+		 */
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		/*
+		在Java 语言中，从织入切面的方式上来看，存在三种织入方式：编译期织入、类加载期织入和运行期织入。编译期织入是指在Java编译期，采用特殊的编译器，将切面织入到Java类中；而类加载期织入则指通过特殊的类加载器，在类字节码加载到JVM时，织入切面；运行期织入则是采用CGLib工具或JDK动态代理进行切面的织入。
+		AspectJ采用编译期织入和类加载期织入的方式织入切面，是语言级的AOP实现，提供了完备的AOP支持。它用AspectJ语言定义切面，在编译期或类加载期将切面织入到Java类中。
+		AspectJ提供了两种切面织入方式，第一种通过特殊编译器，在编译期，将AspectJ语言编写的切面类织入到Java类中，可以通过一个Ant或Maven任务来完成这个操作；第二种方式是类加载期织入，也简称为LTW（Load Time Weaving）。 (只讲解第二种)
+		如何使用Load Time Weaving？首先，需要通过JVM的-javaagent参数设置LTW的织入器类包，以代理JVM默认的类加载器；第二，LTW织入器需要一个 aop.xml文件，在该文件中指定切面类和需要进行切面织入的目标类。
+		 */
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
 		}
 
 		// Stop using the temporary ClassLoader for type matching.
+		/*
+		停止使用临时类加载器进行类型匹配。
+		 */
 		beanFactory.setTempClassLoader(null);
 
 		// Allow for caching all bean definition metadata, not expecting further changes.
+		/*
+		允许缓存所有 Bean 定义元数据，而不期望进一步更改。
+		这里 Bean 定义被锁定住, 不能再被更改
+		 */
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		/*
+		实例化所有剩余的单例 bean。
+		 */
 		beanFactory.preInstantiateSingletons();
 	}
 
@@ -1073,9 +1117,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@SuppressWarnings("deprecation")
 	protected void finishRefresh() {
 		// Clear context-level resource caches (such as ASM metadata from scanning).
+		// 清除上下文级资源缓存（例如扫描中的 ASM 元数据）。
 		clearResourceCaches();
 
 		// Initialize lifecycle processor for this context.
+		// 为此上下文初始化生命周期处理器。
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.

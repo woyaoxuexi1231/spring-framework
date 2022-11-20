@@ -237,6 +237,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	public void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException {
 		AbstractNestablePropertyAccessor nestedPa;
 		try {
+			// 递归导航以返回嵌套属性路径的属性访问器, 相当于这里通过属性名字拿到属性的 set 方法
 			nestedPa = getPropertyAccessorForPropertyPath(propertyName);
 		}
 		catch (NotReadablePropertyException ex) {
@@ -244,6 +245,10 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					"Nested property in path '" + propertyName + "' does not exist", ex);
 		}
 		PropertyTokenHolder tokens = getPropertyNameTokens(getFinalPath(nestedPa, propertyName));
+		/*
+		todo 内部有点复杂, 下次再看 - 2022/11/20
+		通过这个拿到的属性 set 方法, 把我们解析好的属性塞进去
+		 */
 		nestedPa.setPropertyValue(tokens, new PropertyValue(propertyName, value));
 	}
 
