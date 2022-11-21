@@ -1,5 +1,7 @@
 package org.springframework;
 
+import org.springframework.bean.JustInterface;
+
 /**
  * @projectName: spring
  * @package: org.springframework
@@ -14,5 +16,5 @@ package org.springframework;
  * @see :
  */
 
-public class JustInterfaceImpl implements JustInterface{
+public class JustInterfaceImpl {
 }

@@ -2,6 +2,7 @@ package org.springframework;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
  * @version: v1.0
  * @see :
  */
-@Component
+@ComponentScan(basePackages = {"org.springframework.bean"})
 public class TestBean implements ApplicationListener<TestApplicationEven> {
 
 	private String test;
