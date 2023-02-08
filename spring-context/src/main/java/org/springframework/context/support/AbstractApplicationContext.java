@@ -379,6 +379,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Override
 	public ConfigurableEnvironment getEnvironment() {
+		/*
+		返回一个 ConfigurableEnvironment 类, 如果没有则创建一个 StandardEnvironment
+		StandardEnvironment -> AbstractEnvironment -> ConfigurableEnvironment -> (Environment, ConfigurablePropertyResolver) -> PropertyResolver
+		PropertyResolver -> 用于针对任何基础源解析属性的接口。
+		Environment -> 表示当前应用程序正在运行的环境的接口。对应用程序环境的两个关键方面进行建模：配置文件和属性。与属性访问相关的方法通过属性解析程序超接口公开。
+		ConfigurableEnvironment -> 大多数（如果不是全部）环境类型要实现的配置接口。提供用于设置活动和默认配置文件以及操作基础属性源的工具。允许客户端通过 ConfigurablePropertyResolver 超级接口设置和验证所需的属性、自定义转换服务等。
+		StandardEnvironment ->  这个标准的环境实现类, 可以做到访问系统和jvm的一些参数信息
+
+		在 StandardEnvironment 被创建的时候, AbstractEnvironment会默认创建一个 MutablePropertySources 和一个拥有 MutablePropertySources 的 PropertySourcesPropertyResolver
+		MutablePropertySources - 属性源接口的默认实现。允许操作包含的属性源，并提供用于复制现有 PropertySources 实例的构造函数。
+		PropertySourcesPropertyResolver - 属性解析程序实现，它根据一组基础属性源解析属性值。
+		 */
 		if (this.environment == null) {
 			this.environment = createEnvironment();
 		}
@@ -612,17 +624,23 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		synchronized (this.startupShutdownMonitor) {
 
-			// 步骤记录有关在ApplicationStartup期间发生的特定阶段或操作的指标。核心容器及其基础设施组件可以使用ApplicationStartup来标记应用程序启动期间的步骤，并收集有关执行上下文或其处理时间的数据。
+			/*
+			步骤记录有关在ApplicationStartup期间发生的特定阶段或操作的指标。核心容器及其基础设施组件可以使用ApplicationStartup来标记应用程序启动期间的步骤，并收集有关执行上下文或其处理时间的数据。
+			 */
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// Prepare this context for refreshing.
-			// 开始计时，设置状态，注册侦听器
-			// 为读取上下文做准备，完成一些基础的准备工作：设置时间、设置启动关闭标志、检查环境变量。并且提供了提供子类扩展，用来将属性注入到ApplicationContext中，设置事件监听器集合
+			/*
+			Prepare this context for refreshing.
+			开始计时，设置状态，注册侦听器
+			为读取上下文做准备，完成一些基础的准备工作：
+			1. 设置时间、设置启动关闭标志、检查环境变量。
+			2. 并且提供了提供子类扩展，用来将属性注入到ApplicationContext中
+			3. 注册在当前阶段前加入的监听器, 初始化事件队列
+			 */
 			prepareRefresh();
 
-			// Tell the subclass to refresh the internal bean factory.
-			// 创建出当前的容器对象
 			/*
+			Tell the subclass to refresh the internal bean factory.
 			这里构建一个BeanFactory容器(DefaultListableBeanFactory)
 			BeanFactory是一个基础类型的IOC容器, 提供完整的IOC服务支持
 			如果xml容器那么会对xml文件进行解析和构建出完整的beanDefinitionMap
@@ -760,7 +778,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		this.closed.set(false);
 		this.active.set(true);
 
-		// 判断日志级别
+		// 避免无效的字符串运算消耗性能
 		if (logger.isDebugEnabled()) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Refreshing " + this);
@@ -769,18 +787,27 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		// Initialize any placeholder property sources in the context environment.
-		// 这里啥都没做
+		/*
+		Initialize any placeholder property sources in the context environment.
+		初始化的时候替换属性, 这个方法留给子类实现, Spring默认的容器这个方法是不做操作的, 子类在这里设置属性后, 在 validateRequiredProperties() 方法里验证属性是否进行了填充
+		 */
 		initPropertySources();
 
-		// Validate that all properties marked as required are resolvable:
-		// see ConfigurablePropertyResolver#setRequiredProperties
-		// 验证标记为必需的所有属性都是可解析的
-		// getEnvironment() = new StandardEnvironment();
+		/*
+		Validate that all properties marked as required are resolvable:
+		see ConfigurablePropertyResolver#setRequiredProperties
+		验证标记为必需的所有属性都是可解析的
+		getEnvironment() = new StandardEnvironment();
+		 */
 		getEnvironment().validateRequiredProperties();
 
-		// Store pre-refresh ApplicationListeners...
-		// 刷新前注册本地侦听器
+		/*
+		Store pre-refresh ApplicationListeners...
+		由于 ConfigurableApplicationContext 提供了 addApplicationListener 方法
+		因此可以在上下文实例化后的任意时刻添加 ApplicationListener, earlyApplicationListeners 作用便是保存早期向上下文中添加的 ApplicationListener。
+		首次 refresh 时 earlyApplicationListeners 为 null, prepareRefresh 方法会把 AbstractApplicationContext 持有的 applicationListeners 添加到 earlyApplicationListeners
+		再次 refresh 时 Spring 又巧妙的把 earlyApplicationListeners 存放到了 applicationListeners 中。
+		 */
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		} else {
@@ -789,9 +816,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			this.applicationListeners.addAll(this.earlyApplicationListeners);
 		}
 
-		// Allow for the collection of early ApplicationEvents,
-		// to be published once the multicaster is available...
-		// 允许收集早期应用程序事件，一旦多播器可用就发布...
+		/*
+		Allow for the collection of early ApplicationEvents,
+		to be published once the multicaster is available...
+		 */
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 

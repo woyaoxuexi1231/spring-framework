@@ -19,6 +19,7 @@ package org.springframework.context.support;
 import java.io.IOException;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -79,12 +80,18 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 */
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
-		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
-		// XML bean 定义的 bean 定义阅读器。将实际的 XML 文档读取委托给BeanDefinitionDocumentReader接口的实现。
+
+		/*
+		Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		XML bean 定义的 bean 定义阅读器。将实际的 XML 文档读取委托给 BeanDefinitionDocumentReader 接口的实现。
+		 */
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
-		// Configure the bean definition reader with this context's
-		// resource loading environment.
+		/*
+		Configure the bean definition reader with this context's
+		resource loading environment.
+		ResourceEntityResolver - EntityResolver 实现, 它尝试通过 ResourceLoader 解析实体引用（通常相对于 ApplicationContext 的资源库）, 如果适用。扩展委托实体解析程序以提供 DTD 和 XSD 查找。
+		 */
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
@@ -93,7 +100,9 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 		// then proceed with actually loading the bean definitions.
 		initBeanDefinitionReader(beanDefinitionReader);
 
-		// 这里加载所有的bean定义, 并且会把 bean 定义放入 beanDefinitionMap 当中去
+		/*
+		这里加载所有的 bean 定义, 并且会把 bean 定义放入 beanDefinitionMap 当中去
+		 */
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -122,6 +131,10 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+
+		/*
+		这里分为 Resource 类型的配置资源和 String 类型的配置资源, 我们在启动的时候指定的是字符串类型的一个文件名
+		 */
 		Resource[] configResources = getConfigResources();
 		if (configResources != null) {
 			reader.loadBeanDefinitions(configResources);

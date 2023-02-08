@@ -10,8 +10,8 @@ public class DemoApplication {
 
 	public static void main(String[] args) {
 
-		// ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
-		ApplicationContext context = new AnnotationConfigApplicationContext(TestBean.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		// ApplicationContext context = new AnnotationConfigApplicationContext(TestBean.class);
 
 		String[] beanNames = context.getBeanDefinitionNames();
 		for (String beanName : beanNames) {

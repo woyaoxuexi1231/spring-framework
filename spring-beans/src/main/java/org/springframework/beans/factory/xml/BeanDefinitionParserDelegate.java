@@ -412,19 +412,19 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
+
+		// 获取 id 和 name 标签
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
+		// 多个别名
 		List<String> aliases = new ArrayList<>();
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 			aliases.addAll(Arrays.asList(nameArr));
 		}
 
-
-		/*
-		这里也就解释了为什么 id 和 name都可以作为 bean 的名字, 如果没有 id 那么会以 name 作为名字
-		 */
+		// id 属性为空, 会以 name 为 beanName
 		String beanName = id;
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
@@ -452,7 +452,7 @@ public class BeanDefinitionParserDelegate {
 					}
 					else {
 
-						// 这里会以这个 bean 的 className 作为 bean 的名字
+						// 这里会以这个 bean 的 className 作为 bean 的名字 - 这里拿到的 beanName 将会是 类的全限定类名#0
 						beanName = this.readerContext.generateBeanName(beanDefinition);
 						// Register an alias for the plain bean class name, if still possible,
 						// if the generator returned the class name plus a suffix.
@@ -479,7 +479,7 @@ public class BeanDefinitionParserDelegate {
 				}
 			}
 
-			// 把 bean定义, bean名字和定义的别名封装到BeanDefinitionHolder里返回
+			// 把 bean定义, bean 名字和定义的别名封装到 BeanDefinitionHolder 里返回
 			String[] aliasesArray = StringUtils.toStringArray(aliases);
 			return new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
 		}
