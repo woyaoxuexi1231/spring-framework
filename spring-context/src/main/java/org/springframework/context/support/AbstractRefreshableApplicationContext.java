@@ -125,7 +125,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
 
-		// 判断这个上下文当前是否持有一个bean factory，即至少已经刷新了一次并且还没有关闭。如果有，销毁并关闭。
+		// 判断这个上下文当前是否持有一个 bean factory, 即至少已经刷新了一次并且还没有关闭。如果有，销毁并关闭。
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
@@ -147,7 +147,6 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			customizeBeanFactory(beanFactory);
 
 			/*
-			todo
 			加载 bean 定义
 			这里会读取我们指定的 xml 配置文件, 然后从配置文件中读取所有的 bean 定义信息, 并且把这些 bean 定义信息放入 beanDefinitionMap 中去
 			也就是说, 我们的 bean 定义是在容器初始化之后, 在容器创建好之后就 beanDefinitionMap 里面也就创建好了, 在这个阶段也就能拿到所有的 bean 定义信息了

@@ -981,14 +981,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 
-				// 判断当前这个bean是否是一个FactoryBean
+				// 判断当前这个 Bean 是否是一个 FactoryBean
 				if (isFactoryBean(beanName)) {
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof SmartFactoryBean<?> smartFactoryBean && smartFactoryBean.isEagerInit()) {
 						getBean(beanName);
 					}
 				} else {
-					// 正常实例化bean
+					// 正常实例化 Bean
 					getBean(beanName);
 				}
 			}
@@ -1377,6 +1377,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		} else if (javaxInjectProviderClass == descriptor.getDependencyType()) {
 			return new Jsr330Factory().createDependencyProvider(descriptor, requestingBeanName);
 		} else {
+
 			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(
 					descriptor, requestingBeanName);
 			if (result == null) {
@@ -1422,7 +1423,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				return multipleBeans;
 			}
 
+			/*
+			查找与所需类型匹配的 Bean 实例。在指定 Bean 的自动连线期间调用。
+			Map<beanName, class>
+			 */
 			Map<String, Object> matchingBeans = findAutowireCandidates(beanName, type, descriptor);
+			// 解析不了依赖的这个 Bean, 会报错的
 			if (matchingBeans.isEmpty()) {
 				if (isRequired(descriptor)) {
 					raiseNoMatchingBeanFound(type, descriptor.getResolvableType(), descriptor);
@@ -1434,6 +1440,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			Object instanceCandidate;
 
 			if (matchingBeans.size() > 1) {
+				/*
+				确定给定的 bean 集中的自动连线候选者。
+				查找@Primary和@Priority（按该顺序）。
+				 */
 				autowiredBeanName = determineAutowireCandidate(matchingBeans, descriptor);
 				if (autowiredBeanName == null) {
 					if (isRequired(descriptor) || !indicatesMultipleBeans(type)) {
@@ -1452,10 +1462,15 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				autowiredBeanName = entry.getKey();
 				instanceCandidate = entry.getValue();
 			}
-
+			/*
+			这里把找到的候选 Bean 加入到候选 Set中
+			 */
 			if (autowiredBeanNames != null) {
 				autowiredBeanNames.add(autowiredBeanName);
 			}
+			/*
+			这里去获取这个候选 Bean 的实例, 然后又进入它的创建过程中去, 判断依赖的 Bean, 注入它的属性
+			 */
 			if (instanceCandidate instanceof Class) {
 				instanceCandidate = descriptor.resolveCandidate(autowiredBeanName, type, this);
 			}
@@ -1469,6 +1484,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (!ClassUtils.isAssignableValue(type, result)) {
 				throw new BeanNotOfRequiredTypeException(autowiredBeanName, type, instanceCandidate.getClass());
 			}
+			/*
+			最终拿到一个完整的 Bean
+			 */
 			return result;
 		} finally {
 			ConstructorResolver.setCurrentInjectionPoint(previousInjectionPoint);
@@ -1631,7 +1649,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 		for (String candidate : candidateNames) {
+			/*
+			isSelfReference - 确定给定的 beanName/candidate Name 对是否指示自引用，即候选者是指向原始 Bean 还是指向原始 Bean 上的工厂方法。
+			isAutowireCandidate - 确定指定的 Bean 是否符合自动连线候选条件，以注入到声明匹配类型依赖关系的其他 Bean 中。此方法也会检查祖先工厂。
+			 */
 			if (!isSelfReference(beanName, candidate) && isAutowireCandidate(candidate, descriptor)) {
+				/*
+				向候选映射添加一个条目：Bean 实例（如果可用）或仅解析的类型，防止在选择主要候选对象之前提前初始化 Bean。
+				 */
 				addCandidateEntry(result, candidate, descriptor, requiredType);
 			}
 		}
