@@ -521,6 +521,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return whether the bean definition qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+		/*
+		确定给定的 Bean 定义是否符合候选条件。
+		默认实现检查类是否不是接口，并且不依赖于封闭类。
+		可以在子类中重写。
+		这里也就解释了为什么接口
+		 */
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));

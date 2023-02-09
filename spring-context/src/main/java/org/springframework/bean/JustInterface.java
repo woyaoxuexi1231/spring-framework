@@ -1,11 +1,11 @@
-package org.springframework;
+package org.springframework.bean;
 
 import org.springframework.stereotype.Service;
 
 /**
  * @projectName: spring
  * @package: PACKAGE_NAME
- * @className: org.springframework.JustInterface
+ * @className: org.springframework.bean.JustInterface
  * @description: 
  * @author: h1123
  * @createDate: 2022/11/19 20:15

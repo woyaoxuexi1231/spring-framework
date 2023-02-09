@@ -125,9 +125,13 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+		/*
+		用于分析 XML Bean 定义的有状态委托类。供主解析器和任何扩展 BeanDefinitionParsers 或 BeanDefinitionDecorators 使用。
+		 */
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
+		// 判断是否有默认空间命名 - http://www.springframework.org/schema/beans
 		if (this.delegate.isDefaultNamespace(root)) {
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
@@ -303,18 +307,22 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
 
-		// 这里拿到一个完整的包含 bean 定义以及 bean 相关信息的 BeanDefinitionHolder
+		/*
+		这里拿到一个完整的包含 bean 定义以及 bean 相关信息的 BeanDefinitionHolder
+		 */
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
+
 		if (bdHolder != null) {
 
 			/*
-			 decorateBeanDefinitionIfRequired是对自定义的子标签和属性进行处理的（对于程序默认的标签处理其实是直接略过的），底层修饰的细节为 decorateIfRequired 方法
+			 decorateBeanDefinitionIfRequired 是对自定义的子标签和属性进行处理的（对于程序默认的标签处理其实是直接略过的），底层修饰的细节为 decorateIfRequired 方法
 			 */
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.
 				/*
-				这里将会把 bean 定义放入 beanDefinitionMap 中*
+				getReaderContext().getRegistry() 这里会去获取之前创建好的 XmlBeanDefinitionReader 里的 registry, 也就是我们最开始创建好的 DefaultListableBeanFactory
+				通过 DefaultListableBeanFactory 我们把 bean 的定义放入 beanDefinitionMap
 				 */
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
@@ -322,7 +330,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				getReaderContext().error("Failed to register bean definition with name '" +
 						bdHolder.getBeanName() + "'", ele, ex);
 			}
-			// Send registration event.
+			// Send registration event. EmptyReaderEventListener
 			getReaderContext().fireComponentRegistered(new BeanComponentDefinition(bdHolder));
 		}
 	}

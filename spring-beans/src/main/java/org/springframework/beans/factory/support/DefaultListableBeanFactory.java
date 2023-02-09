@@ -1027,10 +1027,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
-		// 尝试在 beanDefinitionMap 里面获取是否已经存在这个beanName
+		// 尝试在 beanDefinitionMap 里面获取是否已经存在这个 beanName
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
-			// 创建beanFactory的时候会选择性的这是这个参数, 即后定义的bean会覆盖之前同名的bean
+			// 创建 beanFactory 的时候会选择性的这是这个参数, 即后定义的bean会覆盖之前同名的 bean
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			} // @Role注解同理, 作用 todo?
@@ -1041,7 +1041,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"' with a framework-generated bean definition: replacing [" +
 							existingDefinition + "] with [" + beanDefinition + "]");
 				}
-			} // 这两个bean定义其实是一样的
+			} // 这两个 bean 定义其实是一样的
 			else if (!beanDefinition.equals(existingDefinition)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Overriding bean definition for bean '" + beanName +
@@ -1058,7 +1058,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			// 这里进行覆盖
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		} else {
-			// 判断这个 bean 的名字是否为之前的 bean 注册的别名, 如果之前有注册过的别名了并且不允许覆盖则报错
+			// 判断这个 bean 的名字是否为之前的 bean 注册的别名, 如果之前有注册过的别名了并且不允许覆盖则报错, 如果允许重写, 那么这个 bean 将拿到这个名字的使用权
 			if (isAlias(beanName)) {
 				if (!isAllowBeanDefinitionOverriding()) {
 					String aliasedName = canonicalName(beanName);
@@ -1074,7 +1074,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					removeAlias(beanName);
 				}
 			}
-			// 这里判断一下是否 bean 的这个创建过程已经执行过了,
+			// 判断 bean 的创建阶段是否已经开始. todo 这里为什么要判断这个东西?
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				// 原文: 无法再修改启动时集合元素（用于稳定迭代）
@@ -1088,6 +1088,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			} else {
 				// Still in startup registration phase
+
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				this.beanDefinitionNames.add(beanName);
 				removeManualSingletonName(beanName);
@@ -1095,6 +1096,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.frozenBeanDefinitionNames = null;
 		}
 
+		/*
+		重置给定 Bean 的所有 Bean 定义缓存, 包括从中派生的 Bean 缓存。 todo 做了些啥?
+		 */
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			resetBeanDefinition(beanName);
 		} else if (isConfigurationFrozen()) {
@@ -1224,6 +1228,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (hasBeanCreationStarted()) {
 			// Cannot modify startup-time collection elements anymore (for stable iteration)
 			synchronized (this.beanDefinitionMap) {
+				// manualSingletonNames - 手动注册的单例的名称列表，按注册顺序排列。
 				if (condition.test(this.manualSingletonNames)) {
 					Set<String> updatedSingletons = new LinkedHashSet<>(this.manualSingletonNames);
 					action.accept(updatedSingletons);

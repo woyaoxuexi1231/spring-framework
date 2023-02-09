@@ -1,7 +1,9 @@
 package org.springframework.bean;
 
 import org.springframework.TestBean;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Season {
 
 	private String name;
