@@ -8,6 +8,8 @@ public class Season {
 
 	private String name;
 
+	private boolean aBoolean;
+
 	private TestBean testBean;
 
 	public String getName() {
@@ -24,6 +26,14 @@ public class Season {
 
 	public void setTestBean(TestBean testBean) {
 		this.testBean = testBean;
+	}
+
+	public boolean isaBoolean() {
+		return aBoolean;
+	}
+
+	public void setaBoolean(boolean aBoolean) {
+		this.aBoolean = aBoolean;
 	}
 
 	@Override

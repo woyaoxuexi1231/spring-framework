@@ -63,6 +63,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse == null) {
 					final Class<?> clazz = bd.getBeanClass();
+					// Spring xml 的形式初始化容器, 如果 Bean 定义是个接口, 那么这里会直接报错了
 					if (clazz.isInterface()) {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}

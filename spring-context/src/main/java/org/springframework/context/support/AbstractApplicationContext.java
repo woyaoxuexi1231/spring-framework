@@ -665,7 +665,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				允许在上下文子类中对 Bean 工厂进行后处理。
 				beanFactory准备工作完成后进行的后置处理，可以在创建bean之前修改bean的定义属性  在bean配置文件加载后，bean实例化之前执行。只为容器的某些特定子类提供特殊的post时间处理器。null方法，可自行实现
 				作用是在BeanFactory准备工作完成后做一些定制化的处理，一般结合BeanPostProcessor接口的实现类一起使用，注入一些重要资源（类似Application的属性和ServletContext的属性）
-				todo
 				*/
 				postProcessBeanFactory(beanFactory);
 
@@ -843,7 +842,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		// AbstractRefreshableApplicationContext
 		refreshBeanFactory();
-		// 返回创建好的beanFactory
+		// 返回创建好的 beanFactory
 		return getBeanFactory();
 	}
 
@@ -898,8 +897,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
 		}
 
-		// Register default environment beans.
-		// 注册一些默认的环境bean
+		/*
+		Register default environment beans.
+		手动注册这四个默认的环境 Bean
+		singletonObjects 和 registeredSingletons 都给加上
+		并且会加到 beanDefinitionMap 里去
+		 */
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}

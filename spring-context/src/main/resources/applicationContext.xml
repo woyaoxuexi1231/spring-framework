@@ -8,6 +8,7 @@
 	<bean class="org.springframework.bean.Season">
 		<property name="name" value="spring"/>
 		<property name="testBean" ref="testBean"/>
+		<property name="aBoolean" value="true"/>
 	</bean>
 
 	<bean id="testBean" class="org.springframework.TestBean">
