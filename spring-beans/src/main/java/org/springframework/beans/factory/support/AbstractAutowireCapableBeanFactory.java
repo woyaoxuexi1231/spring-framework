@@ -591,6 +591,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (instanceWrapper == null) {
 			/*
 			这里确定拿到 bean 实例化对象, 但是还没有注入属性
+			这里会使用构造方法构造一个 Bean 的对象, 只是完成的实例化, 属性还没有填充, 即还没有完成初始化
+			中途不会操作缓存
 			 */
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
@@ -620,8 +622,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		/*
-		todo 这里是怎么解决循环依赖问题的? - 2022/11/20
-		急切地缓存单例，以便能够解析循环引用，即使由生命周期接口（如 BeanFactoryAware）触发也是如此。
+		这里是怎么解决循环依赖问题的? - 2022/11/20 - 2023-02-11循环依赖由三级缓存解决
 		是否为单例
 		this.allowCircularReferences - 是否自动尝试解析 Bean 之间的循环引用。(默认 true)
 		返回指定的单例 Bean 当前是否正在创建（在整个工厂内）。
@@ -647,7 +648,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			this.singletonFactories.put(beanName, singletonFactory);
 			this.earlySingletonObjects.remove(beanName);
 			this.registeredSingletons.add(beanName);
+			这里加入三级缓存, 删除二级缓存
+			todo ? 为什么需要删除二级缓存呢 ??
+
 			把当前实例化的对象加入单例工厂
+			这里不会去获取代理对象, 存的只是这个工厂方法的上下文
 			 */
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
@@ -657,10 +662,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			/*
 			使用来自 Bean 定义的属性值填充给定 BeanWrapper 中的 Bean 实例。
+			这里进行属性填充, 如果这个 Bean 的属性有其他引用类型, 也就是依赖于其他 Bean, 这些 Bean 会被创建
+			这里不操作缓存
 			 */
 			populateBean(beanName, mbd, instanceWrapper);
 			/*
 			初始化给定的 Bean 实例，应用工厂回调以及 init 方法和 Bean 后处理器。对于传统定义的 bean，从 createBean 调用，对于现有 Bean 实例从 initializeBean 调用。
+			spring aop 在这里进行代理对象的替换
+			这里不操作缓存
 			 */
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		} catch (Throwable ex) {
@@ -1005,7 +1014,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		/*
 		mbd.isSynthetic() 一般来说都是返回 false, 即这个类肯定是由程序本身引入的
 		hasInstantiationAwareBeanPostProcessors 如果在创建时没有 InstantiationAwareBeanPostProcessor, 那么会返回 false
-		综上, 一般来说这个方法会直接返回对象本身
+		被代理的类会在这里生成代理对象
 		 */
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
@@ -1137,7 +1146,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName) {
 		/*
-		todo ?
 		ApplicationListenerDetector - 该BeanPostProcessor检测那些实现了接口ApplicationListener的bean，在它们创建时初始化之后，将它们添加到应用上下文的事件多播器上；并在这些ApplicationListener bean销毁之前，将它们从应用上下文的事件多播器上移除。
 		 */
 		for (MergedBeanDefinitionPostProcessor processor : getBeanPostProcessorCache().mergedDefinition) {

@@ -5,14 +5,21 @@
 
 <!--	<bean id="interface" class="org.springframework.bean.JustInterface"/>-->
 
-	<bean class="org.springframework.bean.Season">
-		<property name="name" value="spring"/>
-		<property name="testBean" ref="testBean"/>
-		<property name="aBoolean" value="true"/>
-	</bean>
+<!--	<bean class="org.springframework.bean.Season">-->
+<!--		<property name="name" value="spring"/>-->
+<!--		<property name="testBean" ref="testBean"/>-->
+<!--		<property name="aBoolean" value="true"/>-->
+<!--	</bean>-->
 
 	<bean id="testBean" class="org.springframework.TestBean">
 		<property name="test" value="test"/>
+		<property name="testBean" ref="testBean"/>
+	</bean>
+
+	<bean class=" org.springframework.DoneTimeAspect"/>
+
+	<bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator">
+		<property name="proxyTargetClass" value="true"/>
 	</bean>
 
 </beans>
