@@ -383,7 +383,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 
-							// 这里开始创建 Bean
+							/*
+							这里开始创建 Bean
+							这里拿到的是最终的 Bean, 不管是代理对象还是原始对象, 内部的属性会被完全填充, 即这里拿到的 Bean 是一个完全初始化完成的 Bean
+							 */
 							return createBean(beanName, mbd, args);
 						} catch (BeansException ex) {
 							// Explicitly remove instance from singleton cache: It might have been put there

@@ -78,17 +78,26 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 
 	/**
 	 * Cache of singleton objects: bean name to bean instance.
+	 * 一级缓存
+	 * 只会在 Bean 完全初始化完成的时候会加入这个缓存
 	 */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
 	/**
 	 * Cache of singleton factories: bean name to ObjectFactory.
+	 * 三级缓存
+	 * 1. 在 Bean 实例化之后, 属性填充之前加入这个缓存 - 为了提前暴露, 解决循环依赖
+	 * 2. 会在 Bean 创建之前的缓存判断中删除 - 防止多次产生代理对象
+	 * 3. Bean 完全初始化完成的时候删除 - 必要的操作
 	 */
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
 	/**
 	 * Cache of early singleton objects: bean name to bean instance.
-	 * 早期单例对象的缓存：Bean 实例的 Bean 名称。
+	 * 二级缓存
+	 * 1. 只会在 Bean 创建之前的缓存判断中由三级缓存获取 - 解决循环依赖和防止多次生成代理对象
+	 * 2. 在 Bean 实例化之后, 属性填充之前删除这个缓存
+	 * 3. Bean 完全初始化完成的时候删除 - 必要的操作
 	 */
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
@@ -225,6 +234,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 						if (singletonObject == null) {
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
+								/*
+								这里调用工厂方法会去获取对应的 Bean, 至于是代理对象还是原本的对象, 具体看情况
+								而且这里调用完之后会从三级缓存移除这个上下文, 意味着只会被调用一次
+								 */
 								singletonObject = singletonFactory.getObject();
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
@@ -269,6 +282,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 
 				try {
+					/*
+					这里调用 lambda 表达式去创建 Bean
+					 */
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				} catch (IllegalStateException ex) {
@@ -292,6 +308,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					/*
+					初始化完整的 bean 被创建完成
+					这里在把 Bean 加入一级缓存, 在二级和三级缓存中删除
+					 */
 					addSingleton(beanName, singletonObject);
 				}
 			}

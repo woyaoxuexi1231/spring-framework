@@ -23,7 +23,18 @@ public class TestBean implements ApplicationListener<TestApplicationEven> {
 
 	private String test;
 
+	private TestBean testBean;
+
+	public TestBean getTestBean() {
+		return testBean;
+	}
+
+	public void setTestBean(TestBean testBean) {
+		this.testBean = testBean;
+	}
+
 	@Override
+	@DoneTime
 	public void onApplicationEvent(TestApplicationEven event) {
 		System.out.println("事件进来了");
 	}
@@ -35,4 +46,6 @@ public class TestBean implements ApplicationListener<TestApplicationEven> {
 	public void setTest(String test) {
 		this.test = test;
 	}
+
+
 }
