@@ -2,16 +2,15 @@ package org.springframework;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.ComponentScan;
 
-@Component
+@ComponentScan(basePackages = {"org.springframework.bean"})
 public class DemoApplication {
 
 	public static void main(String[] args) {
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
-		// ApplicationContext context = new AnnotationConfigApplicationContext(TestBean.class);
+		// ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		ApplicationContext context = new AnnotationConfigApplicationContext(DemoApplication.class);
 
 		String[] beanNames = context.getBeanDefinitionNames();
 		for (String beanName : beanNames) {
