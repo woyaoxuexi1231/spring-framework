@@ -91,9 +91,13 @@ public class AnnotatedBeanDefinitionReader {
 			初始化了以下这些属性
 			environment - 一个默认的标准环境类
 			DefaultResourceLoader
-
+			DefaultListableBeanFactory
+			一个当前线程的 ClassLoader
 		 */
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		/*
+		给容器注册相关的 annotation 后置处理器
+		 */
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

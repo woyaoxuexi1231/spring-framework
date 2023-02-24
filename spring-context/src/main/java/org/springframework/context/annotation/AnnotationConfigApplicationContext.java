@@ -68,10 +68,19 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext() {
 		// 开搞
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
-		//
+		/*
+		注册一个 AnnotatedBeanDefinitionReader
+		这是 ClassPathBeanDefinitionScanner 的替代方法，应用相同的注解形式，但仅适用于显式注册的类。
+		这里会在容器内注册一些后置处理器
+		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		// 创建结束
 		createAnnotatedBeanDefReader.end();
+		/*
+		ClassPathBeanDefinitionScanner - 一个 Bean 定义扫描程序，用于检测类路径上的 Bean 候选项，向给定的注册表（BeanFactory 或 ApplicationContext）注册相应的 Bean 定义。
+		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
+		// OK, 容器算是创建好了
 	}
 
 	/**
@@ -174,6 +183,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void register(Class<?>... componentClasses) {
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
+		// 扫描注册阶段开始
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
 		this.reader.register(componentClasses);

@@ -163,6 +163,11 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry;
 
 		if (useDefaultFilters) {
+			/*
+			注册@Component的默认筛选器。
+			这将隐式注册具有@Component元注释的所有注释，包括@Repository、@Service和@Controller构造型注释。
+			还支持 Jakarta EE 的 jakarta.annotation.ManagedBean 和 JSR-330 的 jakarta.inject.Named annotations（如果可用）。
+			 */
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
