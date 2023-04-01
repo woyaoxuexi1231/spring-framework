@@ -1,6 +1,7 @@
-package org.springframework;
+package org.springframework.bean;
 
 import org.springframework.bean.JustInterface;
+import org.springframework.stereotype.Component;
 
 /**
  * @projectName: spring
@@ -15,6 +16,6 @@ import org.springframework.bean.JustInterface;
  * @version: v1.0
  * @see :
  */
-
+@Component
 public class JustInterfaceImpl {
 }

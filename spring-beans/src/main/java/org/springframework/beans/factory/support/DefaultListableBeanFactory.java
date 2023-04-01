@@ -1398,6 +1398,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				return shortcut;
 			}
 
+			// 获取我们之前解析到的 @Resource 的类对象
 			Class<?> type = descriptor.getDependencyType();
 			Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
 			if (value != null) {
@@ -1620,6 +1621,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	/**
 	 * Find bean instances that match the required type.
 	 * Called during autowiring for the specified bean.
+	 * <p>
+	 * 查找与所需类型匹配的 Bean 实例。在指定 Bean 的自动连线期间调用。
 	 *
 	 * @param beanName     the name of the bean that is about to be wired
 	 * @param requiredType the actual type of bean to look for

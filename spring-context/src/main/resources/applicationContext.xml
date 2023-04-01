@@ -11,12 +11,12 @@
 <!--		<property name="aBoolean" value="true"/>-->
 <!--	</bean>-->
 
-	<bean id="testBean" class="org.springframework.TestBean">
+	<bean id="testBean" class="org.springframework.bean.TestBean">
 		<property name="test" value="test"/>
 		<property name="testBean" ref="testBean"/>
 	</bean>
 
-	<bean class=" org.springframework.DoneTimeAspect"/>
+	<bean class=" org.springframework.bean.DoneTimeAspect"/>
 
 	<bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator">
 		<property name="proxyTargetClass" value="true"/>

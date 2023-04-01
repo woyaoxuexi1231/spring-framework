@@ -1,6 +1,7 @@
 package org.springframework.bean;
 
-import org.springframework.TestBean;
+import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,6 +12,11 @@ public class Season {
 	private boolean aBoolean;
 
 	private TestBean testBean;
+
+	JustInterfaceImpl justInterface;
+
+	// @Resource
+	// DoneTimeAspect doneTimeAspect;
 
 	public String getName() {
 		return name;
@@ -24,6 +30,7 @@ public class Season {
 		return testBean;
 	}
 
+	@Resource
 	public void setTestBean(TestBean testBean) {
 		this.testBean = testBean;
 	}
@@ -36,10 +43,22 @@ public class Season {
 		this.aBoolean = aBoolean;
 	}
 
+	public JustInterfaceImpl getJustInterface() {
+		return justInterface;
+	}
+
+	@Resource
+	public void setJustInterface1(JustInterfaceImpl justInterface) {
+		this.justInterface = justInterface;
+	}
+
 	@Override
 	public String toString() {
 		return "Season{" +
 				"name='" + name + '\'' +
+				", aBoolean=" + aBoolean +
+				", testBean=" + testBean +
+				", justInterface=" + justInterface +
 				'}';
 	}
 }

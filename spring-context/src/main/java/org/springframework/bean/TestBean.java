@@ -1,8 +1,8 @@
-package org.springframework;
+package org.springframework.bean;
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.DoneTime;
+import org.springframework.TestApplicationEven;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +18,8 @@ import org.springframework.stereotype.Component;
  * @version: v1.0
  * @see :
  */
-@ComponentScan(basePackages = {"org.springframework.bean"})
+// @ComponentScan(basePackages = {"org.springframework.bean"})
+@Component
 public class TestBean implements ApplicationListener<TestApplicationEven> {
 
 	private String test;
