@@ -62,12 +62,12 @@ import org.springframework.core.annotation.AliasFor;
  * @author Juergen Hoeller
  * @author Arjen Poutsma
  * @author Sam Brannen
- * @since 2.5
  * @see GetMapping
  * @see PostMapping
  * @see PutMapping
  * @see DeleteMapping
  * @see PatchMapping
+ * @since 2.5
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -77,16 +77,21 @@ import org.springframework.core.annotation.AliasFor;
 public @interface RequestMapping {
 
 	/**
+	 * 为此映射指定一个名称。
+	 * <p>
 	 * Assign a name to this mapping.
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * When used on both levels, a combined name is derived by concatenation
 	 * with "#" as separator.
+	 *
 	 * @see org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
 	 * @see org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy
 	 */
 	String name() default "";
 
 	/**
+	 * 此批注表示的主要映射。
+	 * <p>
 	 * The primary mapping expressed by this annotation.
 	 * <p>This is an alias for {@link #path}. For example,
 	 * {@code @RequestMapping("/foo")} is equivalent to
@@ -101,6 +106,8 @@ public @interface RequestMapping {
 	String[] value() default {};
 
 	/**
+	 * 映射 URL, 支持蚂蚁样式的路径模式, 还支持包含占位符的路径模式
+	 * <p>
 	 * The path mapping URIs (e.g. {@code "/profile"}).
 	 * <p>Ant-style path patterns are also supported (e.g. {@code "/profile/**"}).
 	 * At the method level, relative paths (e.g. {@code "edit"}) are supported
@@ -111,6 +118,7 @@ public @interface RequestMapping {
 	 * this primary mapping, narrowing it for a specific handler method.
 	 * <p><strong>NOTE</strong>: A handler method that is not mapped to any path
 	 * explicitly is effectively mapped to an empty path.
+	 *
 	 * @since 4.2
 	 */
 	@AliasFor("value")
@@ -126,6 +134,8 @@ public @interface RequestMapping {
 	RequestMethod[] method() default {};
 
 	/**
+	 * 相当于一个过滤机制, 只有在请求中包含了指定的参数时, 才执行该请求
+	 * <p>
 	 * The parameters of the mapped request, narrowing the primary mapping.
 	 * <p>Same format for any environment: a sequence of "myParam=myValue" style
 	 * expressions, with a request only mapped if each such parameter is found
@@ -141,6 +151,8 @@ public @interface RequestMapping {
 	String[] params() default {};
 
 	/**
+	 * 这相当于一个请求头过滤器, 只有当请求头包含指定的内容才处理请求
+	 * <p>
 	 * The headers of the mapped request, narrowing the primary mapping.
 	 * <p>Same format for any environment: a sequence of "My-Header=myValue" style
 	 * expressions, with a request only mapped if each such header is found
@@ -158,6 +170,7 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * When used at the type level, all method-level mappings inherit this
 	 * header restriction.
+	 *
 	 * @see org.springframework.http.MediaType
 	 */
 	String[] headers() default {};
@@ -182,6 +195,7 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * If specified at both levels, the method level consumes condition overrides
 	 * the type level condition.
+	 *
 	 * @see org.springframework.http.MediaType
 	 * @see jakarta.servlet.http.HttpServletRequest#getContentType()
 	 */
@@ -209,6 +223,7 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * If specified at both levels, the method level produces condition overrides
 	 * the type level condition.
+	 *
 	 * @see org.springframework.http.MediaType
 	 */
 	String[] produces() default {};
