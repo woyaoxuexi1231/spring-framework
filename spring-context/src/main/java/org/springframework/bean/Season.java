@@ -11,8 +11,10 @@ public class Season {
 
 	private boolean aBoolean;
 
+	@Resource
 	private TestBean testBean;
 
+	@Resource
 	JustInterfaceImpl justInterface;
 
 	// @Resource
@@ -30,7 +32,7 @@ public class Season {
 		return testBean;
 	}
 
-	@Resource
+	// @Resource
 	public void setTestBean(TestBean testBean) {
 		this.testBean = testBean;
 	}
@@ -47,7 +49,7 @@ public class Season {
 		return justInterface;
 	}
 
-	@Resource
+	// @Resource
 	public void setJustInterface1(JustInterfaceImpl justInterface) {
 		this.justInterface = justInterface;
 	}

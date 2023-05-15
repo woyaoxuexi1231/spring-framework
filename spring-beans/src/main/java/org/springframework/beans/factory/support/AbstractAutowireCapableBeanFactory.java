@@ -1542,6 +1542,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (pvs == null) {
 				pvs = mbd.getPropertyValues();
 			}
+			/*
+			这里罗列一下可能会执行的一些非常重要的 InstantiationAwareBeanPostProcessor
+			CommonAnnotationBeanPostProcessor - 执行 @Resource 注解填充的后置处理器
+			AutowiredAnnotationBeanPostProcessor - 执行 @Autowired 注解填充的后置处理器
+			 */
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
