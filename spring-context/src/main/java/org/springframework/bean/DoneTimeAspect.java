@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.DoneTime;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @projectName: study-demo
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Aspect
-@Component
+@Service
 public class DoneTimeAspect {
 
 	// @Pointcut("execution(* com.hundsun.demo.*.*(..))")

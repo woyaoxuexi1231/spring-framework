@@ -16,18 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.Lookup;
@@ -61,6 +51,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * A component provider that provides candidate components from a base package. Can
  * use {@link CandidateComponentsIndex the index} if it is available of scans the
@@ -79,11 +78,11 @@ import org.springframework.util.ClassUtils;
  * @author Ramnivas Laddad
  * @author Chris Beams
  * @author Stephane Nicoll
- * @since 2.5
  * @see org.springframework.core.type.classreading.MetadataReaderFactory
  * @see org.springframework.core.type.AnnotationMetadata
  * @see ScannedGenericBeanDefinition
  * @see CandidateComponentsIndex
+ * @since 2.5
  */
 public class ClassPathScanningCandidateComponentProvider implements EnvironmentCapable, ResourceLoaderAware {
 
@@ -116,6 +115,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Protected constructor for flexible subclass initialization.
+	 *
 	 * @since 4.3.6
 	 */
 	protected ClassPathScanningCandidateComponentProvider() {
@@ -123,10 +123,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Create a ClassPathScanningCandidateComponentProvider with a {@link StandardEnvironment}.
+	 *
 	 * @param useDefaultFilters whether to register the default filters for the
-	 * {@link Component @Component}, {@link Repository @Repository},
-	 * {@link Service @Service}, and {@link Controller @Controller}
-	 * stereotype annotations
+	 *                          {@link Component @Component}, {@link Repository @Repository},
+	 *                          {@link Service @Service}, and {@link Controller @Controller}
+	 *                          stereotype annotations
 	 * @see #registerDefaultFilters()
 	 */
 	public ClassPathScanningCandidateComponentProvider(boolean useDefaultFilters) {
@@ -135,11 +136,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Create a ClassPathScanningCandidateComponentProvider with the given {@link Environment}.
+	 *
 	 * @param useDefaultFilters whether to register the default filters for the
-	 * {@link Component @Component}, {@link Repository @Repository},
-	 * {@link Service @Service}, and {@link Controller @Controller}
-	 * stereotype annotations
-	 * @param environment the Environment to use
+	 *                          {@link Component @Component}, {@link Repository @Repository},
+	 *                          {@link Service @Service}, and {@link Controller @Controller}
+	 *                          stereotype annotations
+	 * @param environment       the Environment to use
 	 * @see #registerDefaultFilters()
 	 */
 	public ClassPathScanningCandidateComponentProvider(boolean useDefaultFilters, Environment environment) {
@@ -154,6 +156,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	/**
 	 * Set the resource pattern to use when scanning the classpath.
 	 * This value will be appended to each base package name.
+	 *
 	 * @see #findCandidateComponents(String)
 	 * @see #DEFAULT_RESOURCE_PATTERN
 	 */
@@ -178,10 +181,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Reset the configured type filters.
+	 *
 	 * @param useDefaultFilters whether to re-register the default filters for
-	 * the {@link Component @Component}, {@link Repository @Repository},
-	 * {@link Service @Service}, and {@link Controller @Controller}
-	 * stereotype annotations
+	 *                          the {@link Component @Component}, {@link Repository @Repository},
+	 *                          {@link Service @Service}, and {@link Controller @Controller}
+	 *                          stereotype annotations
 	 * @see #registerDefaultFilters()
 	 */
 	public void resetFilters(boolean useDefaultFilters) {
@@ -200,7 +204,6 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * {@link Controller @Controller} stereotype annotations.
 	 * <p>Also supports Jakarta EE's {@link jakarta.annotation.ManagedBean} and
 	 * JSR-330's {@link jakarta.inject.Named} annotations, if available.
-	 *
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
@@ -210,16 +213,14 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("jakarta.annotation.ManagedBean", cl)), false));
 			logger.trace("JSR-250 'jakarta.annotation.ManagedBean' found and supported for component scanning");
-		}
-		catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			// JSR-250 1.1 API (as included in Jakarta EE) not available - simply skip.
 		}
 		try {
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("jakarta.inject.Named", cl)), false));
 			logger.trace("JSR-330 'jakarta.inject.Named' annotation found and supported for component scanning");
-		}
-		catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			// JSR-330 API not available - simply skip.
 		}
 	}
@@ -228,6 +229,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * Set the Environment to use when resolving placeholders and evaluating
 	 * {@link Conditional @Conditional}-annotated component classes.
 	 * <p>The default is a {@link StandardEnvironment}.
+	 *
 	 * @param environment the Environment to use
 	 */
 	public void setEnvironment(Environment environment) {
@@ -257,6 +259,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * This will typically be a {@link ResourcePatternResolver} implementation.
 	 * <p>Default is a {@code PathMatchingResourcePatternResolver}, also capable of
 	 * resource pattern resolving through the {@code ResourcePatternResolver} interface.
+	 *
 	 * @see org.springframework.core.io.support.ResourcePatternResolver
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
@@ -305,20 +308,21 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Scan the class path for candidate components.
+	 *
 	 * @param basePackage the package to check for annotated classes
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
-		}
-		else {
+		} else {
 			return scanCandidateComponents(basePackage);
 		}
 	}
 
 	/**
 	 * Determine if the index can be used by this instance.
+	 *
 	 * @return {@code true} if the index is available and the configuration of this
 	 * instance is supported by it, {@code false} otherwise
 	 * @since 5.0
@@ -334,10 +338,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Determine if the specified include {@link TypeFilter} is supported by the index.
+	 *
 	 * @param filter the filter to check
 	 * @return whether the index supports this include filter
-	 * @since 5.0
 	 * @see #extractStereotype(TypeFilter)
+	 * @since 5.0
 	 */
 	private boolean indexSupportsIncludeFilter(TypeFilter filter) {
 		if (filter instanceof AnnotationTypeFilter) {
@@ -354,10 +359,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	/**
 	 * Extract the stereotype to use for the specified compatible filter.
+	 *
 	 * @param filter the filter to handle
 	 * @return the stereotype in the index matching this filter
-	 * @since 5.0
 	 * @see #indexSupportsIncludeFilter(TypeFilter)
+	 * @since 5.0
 	 */
 	@Nullable
 	private String extractStereotype(TypeFilter filter) {
@@ -393,21 +399,18 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 							logger.debug("Using candidate component class from index: " + type);
 						}
 						candidates.add(sbd);
-					}
-					else {
+					} else {
 						if (debugEnabled) {
 							logger.debug("Ignored because not a concrete top-level class: " + type);
 						}
 					}
-				}
-				else {
+				} else {
 					if (traceEnabled) {
 						logger.trace("Ignored because matching an exclude filter: " + type);
 					}
 				}
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
 		return candidates;
@@ -435,31 +438,26 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 								logger.debug("Identified candidate component class: " + resource);
 							}
 							candidates.add(sbd);
-						}
-						else {
+						} else {
 							if (debugEnabled) {
 								logger.debug("Ignored because not a concrete top-level class: " + resource);
 							}
 						}
-					}
-					else {
+					} else {
 						if (traceEnabled) {
 							logger.trace("Ignored because not matching any filter: " + resource);
 						}
 					}
-				}
-				catch (FileNotFoundException ex) {
+				} catch (FileNotFoundException ex) {
 					if (traceEnabled) {
 						logger.trace("Ignored non-readable " + resource + ": " + ex.getMessage());
 					}
-				}
-				catch (Throwable ex) {
+				} catch (Throwable ex) {
 					throw new BeanDefinitionStoreException(
 							"Failed to read candidate component class: " + resource, ex);
 				}
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
 		return candidates;
@@ -471,6 +469,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * the package search path.
 	 * <p>The default implementation resolves placeholders against system properties,
 	 * and converts a "."-based package path to a "/"-based resource path.
+	 *
 	 * @param basePackage the base package as specified by the user
 	 * @return the pattern specification to be used for package searching
 	 */
@@ -481,6 +480,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	/**
 	 * Determine whether the given class does not match any exclude filter
 	 * and does match at least one include filter.
+	 *
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
@@ -490,6 +490,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				return false;
 			}
 		}
+		/*
+		 * TODO: 2023/10/15 这个 this.includeFilters 包含了三个需要我们进行验证的注解, @Component,@ManagedBean,@Named, 这里怎么加进去的, 有待考究
+		 */
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);
@@ -501,6 +504,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	/**
 	 * Determine whether the given class is a candidate component based on any
 	 * {@code @Conditional} annotations.
+	 *
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
@@ -517,15 +521,22 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * <p>The default implementation checks whether the class is not an interface
 	 * and not dependent on an enclosing class.
 	 * <p>Can be overridden in subclasses.
+	 *
 	 * @param beanDefinition the bean definition to check
 	 * @return whether the bean definition qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		/*
-		确定给定的 Bean 定义是否符合候选条件。
-		默认实现检查类是否不是接口，并且不依赖于封闭类。
-		可以在子类中重写。
-		这里也就解释了为什么接口
+		 * 确定给定的 Bean 定义是否符合候选条件。
+		 * 1. isIndependent - 确定底层类是否独立，即它是顶级类还是可以独立于封闭类构造的嵌套类（静态内部类）。
+		 * 		在Java中，一个类可以有多种形式，包括顶层类（Top Level Class）、非静态内部类（Inner Class）、静态内部类（Nested Class）、局部类（Local Class）和匿名类（Anonymous Class）其中，顶层类和静态内部类被认为是“独立”的，因为它们不依赖于任何外部实例就可以被实例化
+		 * 2. isConcrete - 返回底层类是否表示具体类，即既不是接口也不是抽象类。
+		 * 3. isAbstract - 返回基础类是否标记为抽象。
+		 * 4. 元数据是否有 Lookup 注解 todo 这个注解具体使用方法
+		 *
+		 * 总结: 1. 如果不是顶层类或者静态内部类是不可以被定义为一个 Bean的  2.要么是具体类, 要么是被 Lookup 修饰的抽象类
+		 * 1. 所以被 @Component类注解修饰的非具体类在这里将被淘汰
+		 * 2. 所以在 @Autowired Mapper类时, 如果编译器报错, 在 Mapper接口上加上 @Repository注解可以解决编译器报错, 但其实对于 Spring容器来说, 这个做法没有任何意义, 这个 Mapper是不会被 Spring注册成 Bean的
 		 */
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
 		return (metadata.isIndependent() && (metadata.isConcrete() ||

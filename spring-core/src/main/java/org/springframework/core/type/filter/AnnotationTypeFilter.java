@@ -96,7 +96,9 @@ public class AnnotationTypeFilter extends AbstractTypeHierarchyTraversingFilter 
 
 	@Override
 	protected boolean matchSelf(MetadataReader metadataReader) {
+		// 获取当前元数据的完整注解元数据信息
 		AnnotationMetadata metadata = metadataReader.getAnnotationMetadata();
+		// 判断元数据是否存在给定的注解 || 判断这些注解是否包含给定的注解, 这里引申出来的就是 @Service和@Repository这类注解在这里会被 @component 给带出来而是当前类可以做为 Bean
 		return metadata.hasAnnotation(this.annotationType.getName()) ||
 				(this.considerMetaAnnotations && metadata.hasMetaAnnotation(this.annotationType.getName()));
 	}
