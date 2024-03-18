@@ -37,7 +37,7 @@ public class TestBean implements ApplicationListener<TestApplicationEven> {
 	@Override
 	@DoneTime
 	public void onApplicationEvent(TestApplicationEven event) {
-		System.out.println("事件进来了");
+		System.out.println("this testbean");
 	}
 
 	public String getTest() {

@@ -548,6 +548,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
 		// AbstractApplicationContext extends DefaultResourceLoader
+		/*
+		PathMatchingResourcePatternResolver 是 Spring Framework 中用于解析资源路径模式的一个类。它是 ResourcePatternResolver 接口的一个实现类。
+		它的主要作用是根据指定的资源路径模式来查找符合条件的资源文件。资源路径模式可以包含通配符，例如 classpath*:/*.xml 表示在类路径下查找所有以 .xml 结尾的文件。
+		PathMatchingResourcePatternResolver 提供了丰富的功能，可以在不同的环境中方便地进行资源文件的查找。它可以用于加载配置文件、扫描包下的所有类文件、读取模板文件等等。
+		在 Spring 中，PathMatchingResourcePatternResolver 经常被用于与其他功能一起使用，比如在 Spring MVC 中扫描控制器类、在 Spring Boot 中加载配置文件、在 Spring Security 中配置权限控制等。
+		 */
 		return new PathMatchingResourcePatternResolver(this);
 	}
 

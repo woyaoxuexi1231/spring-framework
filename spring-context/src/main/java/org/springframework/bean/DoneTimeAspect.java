@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.DoneTime;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 /**
  * @projectName: study-demo
@@ -35,16 +36,16 @@ public class DoneTimeAspect {
 	public Object around(ProceedingJoinPoint joinPoint, DoneTime doneTime) throws Throwable {
 
 		// 计时器
-		// StopWatch stopWatch = new StopWatch();
+		StopWatch stopWatch = new StopWatch();
 		// 方法参数
 		Object[] param = joinPoint.getArgs();
 
 		try {
-			// stopWatch.start();
+			stopWatch.start();
 			return joinPoint.proceed();
 		} finally {
-			// stopWatch.stop();
-			// log.info("Invoke Method {}, Param: {}, Time: {}ms", joinPoint.getSignature(), param, stopWatch.getTotalTimeMillis());
+			stopWatch.stop();
+			System.out.println("this is donetimeaspect");
 		}
 
 	}

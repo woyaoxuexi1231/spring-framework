@@ -628,6 +628,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		返回指定的单例 Bean 当前是否正在创建（在整个工厂内）。
 
 		earlySingletonExposure - 当前是否需要提前曝光 (需要满足的条件)-> 单例 & 允许循环依赖 & 当前 bean 正在创建中
+		其实也就意味着,当前对象正在被创建并且现在又再被创建(又再被创建说明,有一个bean的创建过程已经到了属性填充,需要填充一个当前这个对象,然后发现没有,就会来创建当前对象,不曾想当前对象已经在创建过程中了),那么就说明出现了循环依赖.
 		 */
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
