@@ -13,23 +13,23 @@
 	<!--		<property name="aBoolean" value="true"/>-->
 	<!--	</bean>-->
 
-	<bean id="testBean" class="org.springframework.bean.TestBean">
-		<property name="test" value="test"/>
-		<property name="testBean" ref="testBean"/>
-	</bean>
+	<!-- <bean id="testBean" class="org.springframework.bean.TestBean"> -->
+	<!-- 	<property name="test" value="test"/> -->
+	<!-- 	<property name="testBean" ref="testBean"/> -->
+	<!-- </bean> -->
 
 	<!-- <aop:aspectj-autoproxy/> -->
 	<bean class=" org.springframework.bean.DoneTimeAspect"/>
 
-	<bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator">
-		<property name="proxyTargetClass" value="true"/>
-	</bean>
+	<!-- <bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator"> -->
+	<!-- 	<property name="proxyTargetClass" value="true"/> -->
+	<!-- </bean> -->
 
-	<bean name="aClass" class="org.springframework.bean.AClass">
-		<property name="bClass" ref="bClass"/>
-	</bean>
-	<bean name="bClass" class="org.springframework.bean.BClass">
-		<property name="aClass" ref="aClass"/>
-	</bean>
+	<!-- <bean name="aClass" class="org.springframework.bean.AClass"> -->
+	<!-- 	<property name="bClass" ref="bClass"/> -->
+	<!-- </bean> -->
+	<!-- <bean name="bClass" class="org.springframework.bean.BClass"> -->
+	<!-- 	<property name="aClass" ref="aClass"/> -->
+	<!-- </bean> -->
 
 </beans>

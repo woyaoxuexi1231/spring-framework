@@ -570,7 +570,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd      the merged bean definition for the bean
 	 * @param args     explicit arguments to use for constructor or factory method invocation
 	 * @return a new instance of the bean
-	 * @throws BeanCreationException if the bean could not be created
+	 * @throws BeanCreationException if the bean could not be CREATED
 	 * @see #instantiateBean
 	 * @see #instantiateUsingFactoryMethod
 	 * @see #autowireConstructor
@@ -579,23 +579,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeanCreationException {
 
 		// Instantiate the bean.
-		/*
-		BeanWrapper 是 Spring 的低级 JavaBeans 基础结构的中央接口， 相当于一个代理器
-		提供用于分析和操作标准 JavaBean 的操作：获得和设置属性值（单独或批量），获取属性描述符以及查询属性的可读性/可写性的能力。
-		BeanWrapper 大部分情况下是在 Spring IoC 内部进行使用，通过 BeanWrapper,Spring IoC 容器可以用统一的方式来访问 bean 的属性。用户很少需要直接使用 BeanWrapper 进行编程。
-		 */
+		// BeanWrapper 是 Spring 中的一个核心接口，它提供了对 Bean 实例进行包装和操作的功能。todo
 		BeanWrapper instanceWrapper = null;
 		if (mbd.isSingleton()) {
+			// factoryBeanInstanceCache 是一个缓存，用于存储通过 FactoryBean 创建的 BeanWrapper 实例。FactoryBean 是一个特殊的 bean，它可以用于创建其他 bean 实例。
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
+		// instanceWrapper==null说明这个bean他不是一个FactoryBean呗
 		if (instanceWrapper == null) {
-			/*
-			这里确定拿到 bean 实例化对象, 但是还没有注入属性
-			这里会使用构造方法构造一个 Bean 的对象, 只是完成的实例化, 属性还没有填充, 即还没有完成初始化
-			中途不会操作缓存
-			 */
+			// 通过bean定义和名字创建一个bean的包装类, 会调用bean的构造方法创建好一个没有初始化的对象
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
+		// 拿到这个没有初始化的对象
 		Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
@@ -603,10 +598,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Allow post-processors to modify the merged bean definition.
-		/*
-		todo ? - 2022-2-9
-		使用后置处理器修改 bean 的定义, 类似于修改数据库连接信息(由${}修改为真实的值)
-		 */
+		// 判断是否需要指定bean的前置处理,类似于修改数据库连接信息(由${}修改为真实的值)
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
@@ -630,11 +622,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		earlySingletonExposure - 当前是否需要提前曝光 (需要满足的条件)-> 单例 & 允许循环依赖 & 当前 bean 正在创建中
 		其实也就意味着,当前对象正在被创建并且现在又再被创建(又再被创建说明,有一个bean的创建过程已经到了属性填充,需要填充一个当前这个对象,然后发现没有,就会来创建当前对象,不曾想当前对象已经在创建过程中了),那么就说明出现了循环依赖.
 		 */
+		// 1.首先这是个单例bean
+		// 2.其次这个容器允许循环依赖这种行为
+		// 3.当前这个bean正在被创建.
+		// 满足上面三种条件,那么说明这个bean产生了循环依赖,其实只要这个容器允许循环依赖,那么无论有没有,这里都会返回true
+		// 因为singletonsCurrentlyInCreation这个map被加入在这个方法之前的行为了.DefaultSingletonBeanRegistry#getSingleton
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
-		/*
-		解决循环引用问题，需要提前暴露引用
-		 */
+
+		// 产生了循环依赖那么就要提前暴露
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
@@ -655,6 +651,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			把当前实例化的对象加入单例工厂
 			这里不会去获取代理对象, 存的只是这个工厂方法的上下文
 			 */
+			// 重点又来到了getEarlyBeanReference这个方法
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 

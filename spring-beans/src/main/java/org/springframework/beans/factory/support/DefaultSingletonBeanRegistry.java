@@ -95,9 +95,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 * Cache of early singleton objects: bean name to bean instance.
 	 * 二级缓存
-	 * 1. 只会在 Bean 创建之前的缓存判断中由三级缓存获取 - 解决循环依赖和防止多次生成代理对象
-	 * 2. 在 Bean 实例化之后, 属性填充之前删除这个缓存
-	 * 3. Bean 完全初始化完成的时候删除 - 必要的操作
+	 * 1. 首先这个缓存内的对象只会通过三级缓存拿到
 	 */
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
@@ -219,35 +217,37 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
+		// 1. 首先我们要创建一个bean的第一步,不是创建,而是去看有没有这个单例bean,这么做的原因是,这个方法会给依赖注入使用
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 判断当前单例 bean 是否正在被创建
+		// 2. 如果这个bean并没有创建好,而且还是一个正在创建的单例bean,那么说明可能存在循环依赖了.
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
-			// earlySingletonObjects -> 完成实例化但是尚未初始化的, 提前曝光的单例对象的 Cache
+			// 3. 先尝试一次从二级缓存中获取对象.
 			singletonObject = this.earlySingletonObjects.get(beanName);
 			if (singletonObject == null && allowEarlyReference) {
+				// 4. 二级缓存还是没拿到.
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
-					// 双重检查锁机制
+					// 双重检查锁定然后再尝试从一级缓存中获取对象
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
+						// 依旧为空,继续从二级缓存中获取对象
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
+							// 从三级缓存中获取对象
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
-								/*
-								这里调用工厂方法会去获取对应的 Bean, 至于是代理对象还是原本的对象, 具体看情况
-								而且这里调用完之后会从三级缓存移除这个上下文, 意味着只会被调用一次
-								 */
+								// * 从三级缓存中加入二级缓存
 								singletonObject = singletonFactory.getObject();
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}
-							// 最终还是没能拿到这个单例 bean
+							// 三级缓存中都没有!滚
 						}
 					}
 				}
 			}
 		}
+		// 那就直接返回就行了.
 		return singletonObject;
 	}
 
@@ -273,7 +273,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
-				// 判断一下是不是这个 Bean 正在被创建
+				// 判断一下是不是这个 Bean 正在被创建, 如果恰好正在创建那么就抛出异常, 没有就加入singletonsCurrentlyInCreation
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
