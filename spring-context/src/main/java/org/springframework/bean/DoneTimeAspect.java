@@ -19,7 +19,7 @@ import org.springframework.util.StopWatch;
  */
 
 @Aspect
-@Service
+// @Service
 public class DoneTimeAspect {
 
 	// @Pointcut("execution(* com.hundsun.demo.*.*(..))")

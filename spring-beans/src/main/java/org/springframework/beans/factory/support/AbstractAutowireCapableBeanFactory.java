@@ -1009,11 +1009,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
-		/*
-		mbd.isSynthetic() 一般来说都是返回 false, 即这个类肯定是由程序本身引入的
-		hasInstantiationAwareBeanPostProcessors 如果在创建时没有 InstantiationAwareBeanPostProcessor, 那么会返回 false
-		被代理的类会在这里生成代理对象
-		 */
+		// 这里如果需要生成代理对象,会在这里生成
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
 				exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);

@@ -21,15 +21,15 @@
 	<!-- <aop:aspectj-autoproxy/> -->
 	<bean class=" org.springframework.bean.DoneTimeAspect"/>
 
-	<!-- <bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator"> -->
+	<bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator">
 	<!-- 	<property name="proxyTargetClass" value="true"/> -->
-	<!-- </bean> -->
+	</bean>
 
-	<!-- <bean name="aClass" class="org.springframework.bean.AClass"> -->
-	<!-- 	<property name="bClass" ref="bClass"/> -->
-	<!-- </bean> -->
-	<!-- <bean name="bClass" class="org.springframework.bean.BClass"> -->
-	<!-- 	<property name="aClass" ref="aClass"/> -->
-	<!-- </bean> -->
+	<bean name="aClass" class="org.springframework.bean.AClass">
+		<property name="bClass" ref="bClass"/>
+	</bean>
+	<bean name="bClass" class="org.springframework.bean.BClass">
+		<property name="aClass" ref="aClass"/>
+	</bean>
 
 </beans>

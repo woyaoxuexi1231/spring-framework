@@ -1,5 +1,7 @@
 package org.springframework.bean;
 
+import org.springframework.DoneTime;
+
 /**
  * @projectName: spring
  * @package: org.springframework.bean
@@ -21,4 +23,11 @@ public class AClass {
 	public void setbClass(BClass bClass) {
 		this.bClass = bClass;
 	}
+
+	@DoneTime
+	public void print() {
+		System.out.println("aclass");
+	}
+
+	;
 }
