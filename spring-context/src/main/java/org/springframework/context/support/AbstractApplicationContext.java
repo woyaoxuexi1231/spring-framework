@@ -630,9 +630,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		synchronized (this.startupShutdownMonitor) {
 
-			/*
-			步骤记录有关在ApplicationStartup期间发生的特定阶段或操作的指标。核心容器及其基础设施组件可以使用ApplicationStartup来标记应用程序启动期间的步骤，并收集有关执行上下文或其处理时间的数据。
-			 */
+			// 步骤记录有关在ApplicationStartup期间发生的特定阶段或操作的指标。核心容器及其基础设施组件可以使用ApplicationStartup来标记应用程序启动期间的步骤，并收集有关执行上下文或其处理时间的数据。
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			/*
@@ -647,60 +645,52 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			/*
 			Tell the subclass to refresh the internal bean factory.
-			这里构建一个BeanFactory容器(DefaultListableBeanFactory)
-			BeanFactory是一个基础类型的IOC容器, 提供完整的IOC服务支持
+			这里构建一个BeanFactory容器(DefaultListableBeanFactory),BeanFactory是一个基础类型的IOC容器, 提供完整的IOC服务支持
 			如果xml容器那么会对xml文件进行解析和构建出完整的beanDefinitionMap
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// Prepare the bean factory for use in this context.
 			/*
-			准备一下这个容器, 添加一些参数配置, 给容器添加一些处理器
-			使用beanFactory之前对beanFactory准备（设置一些信息：类加载器、解析器、自动装配等等）
-			设置了类加载器
-			为 beanFactory 注册一个 ResourceEditorRegistrar
-			注册了一些 BeanPostProcessor
-			设置了一些默认的环境 bean
+			Prepare the bean factory for use in this context.
+			1. 设置类加载器
+			2. 设置一些spring自带的接口的自动注入,比如ApplicationContextAware
+			3. 设置当注入某些接口类型的bean的时候,直接注入spring指定的类.比如当我们要注入BeanFactory的时候,自动帮我们注入上一步创建好的ConfigurableListableBeanFactory
+			4. 注册一个ApplicationListenerDetector来帮我们自动注册我们声明的spring的监听器
+			5. 预注册四个spring指定的bean,这样后续其他的bean要注入这四个bean的时候,会直接用这四个,避免不安全的操作
 			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
 
 				/*
-				Allows post-processing of the bean factory in context subclasses.
-				允许在上下文子类中对 Bean 工厂进行后处理。
-				beanFactory准备工作完成后进行的后置处理，可以在创建bean之前修改bean的定义属性  在bean配置文件加载后，bean实例化之前执行。只为容器的某些特定子类提供特殊的post时间处理器。null方法，可自行实现
-				作用是在BeanFactory准备工作完成后做一些定制化的处理，一般结合BeanPostProcessor接口的实现类一起使用，注入一些重要资源（类似Application的属性和ServletContext的属性）
+				Allows post-processing of the bean factory in context subclasses. - 允许在上下文子类中对 Bean 工厂进行后处理。
+				beanFactory准备工作完成后进行的后置处理，可以在创建bean之前修改bean的定义属性,在bean配置文件加载后，bean实例化之前执行。只为容器的某些特定子类提供特殊的post时间处理器。null方法，可自行实现
+
+				例如我们使用springboot的SpringApplication.run来启动容器时,会创建一个AnnotationConfigServletWebServerApplicationContext上下文
+				这个上下文中:
+				1. 注册一个WebApplicationContextServletContextAwareProcessor后置处理器,这个后置处理器可以获取servletContext和servletConfig
+				2. 设置ServletContextAware的自动注入失效
+				3. 注册web应用的生命周期
+				todo 2024年3月23日
 				*/
 				postProcessBeanFactory(beanFactory);
 
-				/*
-				该步骤将创建并开始调用应用程序启动，并分配一个唯一ID。
-				然后，我们可以在处理过程中使用StartupStep.Tags附加信息
-				然后我们需要标记步骤的结束（）
-				其实就是记录一些指标信息, 时间啦什么的,
-				 */
+				// 标志我们容器的bean的后置处理阶段开始了
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 
-				// Invoke factory processors registered as beans in the context.
 				/*
-				实例化和调用所有已注册BeanFactoryPostProcessor的bean  ，如果给定了明确的顺序则按顺序执行。ps:必须在单例实例化之前调用。
+				Invoke factory processors registered as beans in the context. - 主要用于处理 BeanFactoryPostProcessor 接口，针对 BeanFactory 的扩展，主要用在 bean 实例化之前，读取 bean 的定义，并可以修改它。
 				BeanFactoryPostProcessor 接口是 Spring 初始化 BeanFactory 时对外暴露的扩展点，Spring IoC 容器允许 BeanFactoryPostProcessor 在容器实例化任何 bean 之前读取 bean 的定义，并可以修改它。
-				BeanDefinitionRegistryPostProcessor 继承自 BeanFactoryPostProcessor，比 BeanFactoryPostProcessor 具有更高的优先级，主要用来在常规的 BeanFactoryPostProcessor 检测开始之前注册其他 bean 定义。特别是，你可以通过 BeanDefinitionRegistryPostProcessor 来注册一些常规的 BeanFactoryPostProcessor，因为此时所有常规的 BeanFactoryPostProcessor 都还没开始被处理。
-				spring有提供几个现成的BeanFactoryPostProcessor
-				PropertyPlaceholderConfigurer -- 类似于当我们把数据库连接信息放在另一个文件内时, 在bean定义中用${}定义, 用这个处理器来用正确的值来替换这些占位符
-				PropertyOverrideConfigurer -- 进行一个值的覆盖操作
-				CustomEditorConfigurer
+
+				一个例子:
+				LazyInitializationBeanFactoryPostProcessor-指的是延迟一个对象的加载直到这个对象被真正需要。在Spring框架中，懒加载可以用来提高应用启动的速度，因为不是所有的bean都需要在应用启动的时候立即初始化。
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// Register bean processors that intercept bean creation.
 				/*
-				注册beanPostProcessor（bean的后置处理器）在bean创建前后执行
-				invokeBeanFactoryPostProcessors 方法主要用于处理 BeanFactoryPostProcessor 接口，
-				registerBeanPostProcessors 方法主要用于处理 BeanPostProcessor 接口。
-				BeanFactoryPostProcessor 是针对 BeanFactory 的扩展，主要用在 bean 实例化之前，读取 bean 的定义，并可以修改它。
-				BeanPostProcessor 是针对 bean 的扩展，主要用在 bean 实例化之后，执行初始化方法前后，允许开发者对 bean 实例进行修改。
+				Register bean processors that intercept bean creation. - 主要用于处理 BeanPostProcessor 接口。针对 bean 的扩展，主要用在 bean 实例化之后，执行初始化方法前后，允许开发者对 bean 实例进行修改。
+				BeanPostProcessor是Spring框架中的一个接口，它允许我们在Spring容器实例化bean之后和初始化bean之前进行自定义的修改
+				例如，我们可以在bean的属性被设置之后，但初始化回调（如InitializingBean's afterPropertiesSet或自定义的init-method）被调用之前，修改bean的状态
 				 */
 				registerBeanPostProcessors(beanFactory);
 
@@ -711,13 +701,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 初始化信息源：初始化MessageSource组件（做国际化功能；消息绑定，消息解析）
 				initMessageSource();
 
-				// Initialize event multicaster for this context.
 				/*
-				初始化容器事件传播器（事件派发）
-				ApplicationEventMulticaster 这个接口可以管理很多个ApplicationListener对象。并将事件发布给这些监听器。
-				ApplicationEventPublisher接口是ApplicationContext接口的父接口，这个接口也就是ApplicationContext对象可以用一个ApplicationEventMulticaster对象来发布事件给监听器。
+				Initialize event multicaster for this context. - 初始化容器事件传播器（事件派发）
+
+				initApplicationEventMulticaster() 方法通常是在 Spring 应用程序上下文的初始化过程中调用的一个方法。它的作用是初始化应用程序事件广播器（ApplicationEventMulticaster）。
+				在 Spring 框架中，事件是一个重要的机制，它允许在应用程序中的不同组件之间进行通信。通过事件，一个组件可以通知其他组件某些特定的状态变化或者动作发生。
+				而事件广播器（ApplicationEventMulticaster）则负责接收这些事件，并将它们广播给注册了对应事件监听器（ApplicationListener）的组件
 				这个接口的方法主要是添加、删除ApplicationListener（事件监听器）。还有最重要的就是发布的事件给相匹配的监听器。
-				todo ?
+				TODO 2024年3月23日
 				 */
 				initApplicationEventMulticaster();
 
@@ -730,21 +721,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 */
 				onRefresh();
 
-				// Check for listener beans and register them.
 				/*
-				为事件传播器注册事件监听器
-				这里会在 beanDefinitionMap 中去拿所有的 ApplicationListener 注册到
+				Check for listener beans and register them. - 为事件传播器注册事件监听器
+				这里会在 beanDefinitionMap 中去拿所有的 ApplicationListener 注册到 ApplicationEventMulticaster, 然后会发布这些事件
 				 */
 				registerListeners();
 
-				// Instantiate all remaining (non-lazy-init) singletons.
 				/*
-				这里会初始化所有剩下的非懒加载的单例bean
+				Instantiate all remaining (non-lazy-init) singletons. - 这里会初始化所有剩下的非懒加载的单例bean
+
+				也就是我们的bean会在这一步进行实例化,初始化 **所以我们重点关注这个方法
 				 */
 				finishBeanFactoryInitialization(beanFactory);
 
-				// Last step: publish corresponding event.
 				/*
+				Last step: publish corresponding event.
 				完成context的刷新。主要是调用LifecycleProcessor的onRefresh()方法，并且发布事件（ContextRefreshedEvent）
 				 */
 				finishRefresh();
@@ -793,16 +784,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		/*
-		Initialize any placeholder property sources in the context environment.
-		初始化的时候替换属性, 这个方法留给子类实现, Spring默认的容器这个方法是不做操作的, 子类在这里设置属性后, 在 validateRequiredProperties() 方法里验证属性是否进行了填充
+		Initialize any placeholder property sources in the context environment. - 初始化上下文环境中的任何占位符属性源。
+		这个抽象类中并没有对这个方法进行实现,是留给子类实现的.
+		这个方法的主要作用是初始化上下文环境中的占位符属性源。具体来说，它可以用于处理和解析配置文件中的占位符，例如在 Spring 的 `@Configuration` 类中使用 `@PropertySource` 注解来添加属性源¹²。
+		这个方法通常在应用上下文创建时被调用，以确保所有的属性源都被正确地初始化和注册。这对于后续的属性解析和注入非常重要，因为它能确保 Spring 环境中的所有属性都可以被正确地解析和使用。³。希望这个解释对你有所帮助！
+		TODO 2024年3月23日 以后再研究吧
 		 */
 		initPropertySources();
 
 		/*
 		Validate that all properties marked as required are resolvable:
-		see ConfigurablePropertyResolver#setRequiredProperties
-		验证标记为必需的所有属性都是可解析的
-		getEnvironment() = new StandardEnvironment();
+		必需的属性是否已经在属性源中定义
 		 */
 		getEnvironment().validateRequiredProperties();
 
@@ -943,7 +935,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
-		// (e.g. through an @Bean method registered by ConfigurationClassPostProcessor)
+		// (e.g. through an @Bean method registered by C	onfigurationClassPostProcessor)
 		if (!NativeDetector.inNativeImage() && beanFactory.getTempClassLoader() == null && beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
 			beanFactory.addBeanPostProcessor(new LoadTimeWeaverAwareProcessor(beanFactory));
 			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
@@ -1095,27 +1087,33 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 
 		// Initialize conversion service for this context.
-		/*
-		为此上下文初始化转换服务。
-		 */
+		// 目的是在容器中寻找一个合适的转换服务，并将其设置为容器的默认转换服务。这样一来，当需要进行类型转换时，Spring 将会使用这个转换服务来完成相应的转换操作。
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
 					beanFactory.getBean(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
 		}
 
-		// Register a default embedded value resolver if no BeanFactoryPostProcessor
-		// (such as a PropertySourcesPlaceholderConfigurer bean) registered any before:
-		// at this point, primarily for resolution in annotation attribute values.
 		/*
-		如果之前没有 BeanFactoryPostProcessor（例如 PropertySourcesPlaceholderConfigurer bean）注册默认的嵌入值解析器：此时，主要用于解析注释属性值。
+		Register a default embedded value resolver if no BeanFactoryPostProcessor
+		(such as a PropertySourcesPlaceholderConfigurer bean) registered any before:
+		at this point, primarily for resolution in annotation attribute values.
+
+		这段代码是在检查容器是否已经设置了嵌入值解析器（EmbeddedValueResolver），如果没有，则添加一个嵌入值解析器。嵌入值解析器的作用是解析 Bean 定义中的占位符，将占位符替换为相应的值。
+
+		beanFactory.hasEmbeddedValueResolver()：这段代码检查容器是否已经设置了嵌入值解析器。嵌入值解析器用于解析 Bean 定义中的占位符，例如 ${...} 形式的占位符。
+		beanFactory.addEmbeddedValueResolver(...)：如果容器中尚未设置嵌入值解析器，则执行下一步操作。在这里，使用 getEnvironment().resolvePlaceholders(strVal) 创建了一个嵌入值解析器，并将其添加到 BeanFactory 中。
+		getEnvironment().resolvePlaceholders(strVal)：这个方法调用了环境对象（Environment）的 resolvePlaceholders 方法，用于解析占位符。传入的参数 strVal 是一个字符串，可能包含了占位符，该方法会将占位符替换为实际的值。
+
+		通过这段代码，确保了容器中的 Bean 定义中的占位符会被解析和替换为实际的值，从而使得 Bean 定义中的配置可以包含动态的、基于环境的信息。这对于配置文件中的属性值或者其他配置信息的动态替换非常有用。
 		 */
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
-		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
 		/*
+		Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+
 		在Java 语言中，从织入切面的方式上来看，存在三种织入方式：编译期织入、类加载期织入和运行期织入。编译期织入是指在Java编译期，采用特殊的编译器，将切面织入到Java类中；而类加载期织入则指通过特殊的类加载器，在类字节码加载到JVM时，织入切面；运行期织入则是采用CGLib工具或JDK动态代理进行切面的织入。
 		AspectJ采用编译期织入和类加载期织入的方式织入切面，是语言级的AOP实现，提供了完备的AOP支持。它用AspectJ语言定义切面，在编译期或类加载期将切面织入到Java类中。
 		AspectJ提供了两种切面织入方式，第一种通过特殊编译器，在编译期，将AspectJ语言编写的切面类织入到Java类中，可以通过一个Ant或Maven任务来完成这个操作；第二种方式是类加载期织入，也简称为LTW（Load Time Weaving）。 (只讲解第二种)

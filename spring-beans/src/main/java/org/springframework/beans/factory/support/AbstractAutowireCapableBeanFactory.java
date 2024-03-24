@@ -637,21 +637,25 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						"' to allow for resolving potential circular references");
 			}
 			/*
-			这里主要是调用方法 addSingletonFactory, 往缓存 singletonFactories 里面放入一个 ObjectFactory
-			当其他的 bean 对该 bean 有依赖时,可以提前获取到
-			getEarlyBeanReference方法就是获取一个引用, 里面主要是调用了 SmartInstantiationAwareBeanPostProcessor 的 getEarlyBeanReference 方法，以便解决循环依赖问题
-			这里一般都是 bean 本身, 在 AOP时是代理
+			首先明确一点,设计缓存的目的是什么:解决依赖注入的问题.我现在有个bean里面依赖别的bean,我是不是应该有个地方去拿,而且要保证单例模式每次拿的都是同一个对象,是不是应该有个地方存.
+			只有一级缓存:
+			所有的bean都是独立的,或者最多存在单向依赖关系.
 
-			this.singletonFactories.put(beanName, singletonFactory);
-			this.earlySingletonObjects.remove(beanName);
-			this.registeredSingletons.add(beanName);
-			这里加入三级缓存, 删除二级缓存
-			todo ? 为什么需要删除二级缓存呢 ??
+			一旦存在 A->B,B->A,这种情况一级缓存就解决不了了.
+			当创建A的时候为了填充属性,我们会去创建B,但是由于A没创建好,所以不能放入一级缓存.
+			所以创建B的时候为了填充属性,我们又会去创建A,这样就陷入了死循环.
+			所以引入二级缓存,当A开始创建的时候,我们就把A放入二级缓存,当B由于需要依赖注入的时候就会去二级缓存中找A,找到了会把A注入.
+			这么来看,二级缓存似乎够用了.
 
-			把当前实例化的对象加入单例工厂
-			这里不会去获取代理对象, 存的只是这个工厂方法的上下文
+			那么如果在doCreateBean方法中，直接生成Bean基于AOP的代理对象，将代理对象存入二级缓存earlySingleton，是不是还是可以不需要三级缓存singletonFactory呢？
+			如果这么做了，就把AOP中创建代理对象的时机提前了，不管是否发生循环依赖，都在doCreateBean方法中完成了AOP的代理。
+			不仅没有必要，而且违背了Spring在结合AOP跟Bean的生命周期的设计！
+			Spring结合AOP跟Bean的生命周期本身就是通过AnnotationAwareAspectJAutoProxyCreator这个后置处理器来完成的，在这个后置处理的postProcessAfterInitialization方法中对初始化后的Bean完成AOP代理。
+			如果出现了循环依赖，那没有办法，只有给Bean先创建代理，但是没有出现循环依赖的情况下，设计之初就是让Bean在生命周期的最后一步完成代理而不是在实例化后就立马完成代理。
+			如果是一个正常流程,在populateBean方法接着就会initializeBean,这个方法将会生成代理对象,而这里的() -> getEarlyBeanReference(beanName, mbd, bean)将不会被调用
+
+			https://www.zhihu.com/question/445446018 这篇文章写得非常好
 			 */
-			// 重点又来到了getEarlyBeanReference这个方法
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -666,8 +670,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			populateBean(beanName, mbd, instanceWrapper);
 			/*
 			初始化给定的 Bean 实例，应用工厂回调以及 init 方法和 Bean 后处理器。对于传统定义的 bean，从 createBean 调用，对于现有 Bean 实例从 initializeBean 调用。
-			spring aop 在这里进行代理对象的替换
-			这里不操作缓存
+			如果说不存在循环依赖,那么AOP的操作将在这里完成
+			如果存在循环依赖,那么将在循环依赖的过程中生成代理对象
 			 */
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		} catch (Throwable ex) {
